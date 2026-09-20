@@ -147,7 +147,25 @@ export default function TransformationsSlider({ lang = "ar" }) {
 
                   {/* دستگیره دایره‌ای با ابعاد فیکس و کاملاً گرد */}
                   <div className="absolute top-1/2 -start-5 -translate-y-1/2 w-10 h-10 min-w-10 min-h-10 rounded-full bg-gold-500 text-dark-950 flex items-center justify-center shadow-2xl border-2 border-dark-950 shrink-0 select-none aspect-square">
-                    <span className="text-sm font-black leading-none">↔</span>
+                    <span className="text-sm font-black leading-none">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        width="22"
+                        height="22"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <line x1="3" y1="12" x2="21" y2="12" />
+
+                        <polyline points="8 7 3 12 8 17" />
+
+                        <polyline points="16 7 21 12 16 17" />
+                      </svg>
+                    </span>
                   </div>
                 </div>
               </div>
