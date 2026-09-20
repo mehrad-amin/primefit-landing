@@ -1,69 +1,107 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState, useEffect } from "react";
+import { clubData } from "../src/config/clubData.js";
+
+import Facilities from "@/src/components/Facilities.jsx";
+import TransformationsSlider from "@/src/components/TransformationsSlider.jsx";
+import Faq from "@/src/components/Faq.jsx";
+import Trainers from "@/src/components/Trainers.jsx";
+import Testimonials from "@/src/components/Testimonials.jsx";
+import Schedule from "@/src/components/Schedule.jsx";
+import Recovery from "@/src/components/Recovery.jsx";
+import FitnessCalculator from "@/src/components/FitnessCalculator.jsx";
+import FloatingWhatsApp from "@/src/components/FloatingWhatsApp.jsx";
+import Footer from "@/src/components/Footer.jsx";
+import Header from "@/src/components/Header.jsx";
+import Hero from "@/src/components/Hero.jsx";
+import Pricing from "@/src/components/Pricing.jsx";
+
+export default function HomePage() {
+  const [lang, setLang] = useState("ar");
+  const [currency, setCurrency] = useState(
+    clubData.activeCurrencyCode || "USD",
+  );
+
+  // استیت متمرکز برای ۳ انتخاب همزمان
+  const [selectedBookings, setSelectedBookings] = useState({
+    plan: null,
+    trainer: null,
+    classItem: null,
+  });
+
+  useEffect(() => {
+    const isRtl = lang === "ar";
+    document.documentElement.dir = isRtl ? "rtl" : "ltr";
+    document.documentElement.lang = lang;
+  }, [lang]);
+
+  // اسکرول نرم به فرم بعد از انتخاب
+  const scrollToForm = () => {
+    setTimeout(() => {
+      const el = document.getElementById("lead-capture");
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  };
+
+  const handleSelectPlan = (plan) => {
+    setSelectedBookings((prev) => ({ ...prev, plan }));
+    scrollToForm();
+  };
+
+  const handleSelectTrainer = (trainer) => {
+    setSelectedBookings((prev) => ({ ...prev, trainer }));
+    scrollToForm();
+  };
+
+  const handleSelectClass = (classItem) => {
+    setSelectedBookings((prev) => ({ ...prev, classItem }));
+    scrollToForm();
+  };
+
+  const handleClearBooking = (type) => {
+    setSelectedBookings((prev) => ({ ...prev, [type]: null }));
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.js
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <main className="min-h-screen bg-dark-950 text-neutral-100 flex flex-col">
+      <Header
+        lang={lang}
+        onLanguageChange={setLang}
+        currentCurrency={currency}
+        onCurrencyChange={setCurrency}
+      />
+      <Hero lang={lang} />
+      <Facilities lang={lang} />
+      <Recovery lang={lang} />
+      <TransformationsSlider lang={lang} />
+      <FitnessCalculator lang={lang} />
+
+      {/* اتصال کلاس‌ها */}
+      <Schedule lang={lang} onSelectClass={handleSelectClass} />
+
+      {/* اتصال مربیان */}
+      <Trainers lang={lang} onSelectTrainer={handleSelectTrainer} />
+
+      <Testimonials lang={lang} />
+
+      {/* اتصال پلن‌ها */}
+      <Pricing
+        lang={lang}
+        currentCurrency={currency}
+        onSelectPlan={handleSelectPlan}
+      />
+
+      <Faq lang={lang} />
+
+      {/* فرم با بج‌های فعال */}
+      <Footer
+        lang={lang}
+        selectedBookings={selectedBookings}
+        onClearBooking={handleClearBooking}
+      />
+
+      <FloatingWhatsApp lang={lang} />
+    </main>
   );
 }
