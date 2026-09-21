@@ -2,6 +2,29 @@ import { NextResponse } from "next/server";
 import { generateLeadEmailHtml } from "@/src/lib/emailTemplate.js";
 import { getLocalClubTime } from "@/src/lib/dateUtils.js";
 
+// استخراج ایمن متغیرها چه در لوکال/ورسل و چه در ورکر کلودفلر
+async function resolveEnvironmentVariables() {
+  let cfEnv = {};
+  try {
+    const { getCloudflareContext } = await import("@opennextjs/cloudflare");
+    const ctx = await getCloudflareContext({ async: true });
+    if (ctx && ctx.env) {
+      cfEnv = ctx.env;
+    }
+  } catch (e) {
+    // در محیط غیر از کلودفلر نادیده گرفته می‌شود
+  }
+
+  return {
+    RESEND_API_KEY: cfEnv.RESEND_API_KEY || process.env.RESEND_API_KEY || "",
+    GYM_ADMIN_EMAIL: cfEnv.GYM_ADMIN_EMAIL || process.env.GYM_ADMIN_EMAIL || "",
+    GOOGLE_SHEET_WEBHOOK_URL:
+      cfEnv.GOOGLE_SHEET_WEBHOOK_URL ||
+      process.env.GOOGLE_SHEET_WEBHOOK_URL ||
+      "",
+  };
+}
+
 export async function POST(request) {
   try {
     const body = await request.json();
@@ -56,11 +79,13 @@ export async function POST(request) {
         .join(" | ") ||
       (lang === "ar" ? "تصريح تجريبي عام" : "General Day Pass");
 
-    // ۱. ارسال به گوگل شیت (با await جهت اطمینان از بسته نشدن کانتینر)
-    const googleSheetWebhookUrl = process.env.GOOGLE_SHEET_WEBHOOK_URL;
-    if (googleSheetWebhookUrl) {
+    // خواندن مقادیر با تابع هوشمند دوطرفه
+    const env = await resolveEnvironmentVariables();
+
+    // ۱. ارسال به گوگل شیت
+    if (env.GOOGLE_SHEET_WEBHOOK_URL) {
       try {
-        await fetch(googleSheetWebhookUrl, {
+        await fetch(env.GOOGLE_SHEET_WEBHOOK_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -75,15 +100,15 @@ export async function POST(request) {
           }),
         });
       } catch (err) {
-        console.error("Google Sheet Sync Error:", err);
+        console.error("Cloudflare Sheet Sync Error:", err);
       }
     }
 
-    // ۲. ارسال ایمیل با Resend (با await حتمی)
-    const resendApiKey = process.env.RESEND_API_KEY;
-    const adminEmail = process.env.GYM_ADMIN_EMAIL;
+    // ۲. ارسال مستقیم از طریق Resend HTTP API (همراه با Await صریح)
+    let emailStatus = "not_attempted";
+    let resendDebug = null;
 
-    if (resendApiKey && adminEmail) {
+    if (env.RESEND_API_KEY && env.GYM_ADMIN_EMAIL) {
       const emailHtml = generateLeadEmailHtml({
         fullName,
         fullInternationalPhone,
@@ -101,34 +126,39 @@ export async function POST(request) {
           : `🔥 New Lead: ${fullName} (${selectedSummary})`;
 
       try {
-        const resendRes = await fetch("https://api.resend.com/emails", {
+        const resendResponse = await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${resendApiKey.trim()}`,
+            Authorization: `Bearer ${env.RESEND_API_KEY.trim()}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
             from: "onboarding@resend.dev",
-            to: [adminEmail.trim()],
+            to: [env.GYM_ADMIN_EMAIL.trim()],
             subject: emailSubject,
             html: emailHtml,
           }),
         });
 
-        const resendData = await resendRes.json();
-        console.log("Resend API Outcome:", resendData);
+        resendDebug = await resendResponse.json();
+        emailStatus = resendResponse.ok ? "sent" : "failed";
       } catch (err) {
-        console.error("Resend Dispatch Error:", err);
+        console.error("Cloudflare Resend Dispatch Error:", err);
+        emailStatus = "network_error";
       }
     } else {
-      console.warn(
-        "Resend Config Missing: API key or Admin Email not detected in env.",
-      );
+      emailStatus = "missing_env_credentials";
     }
 
     return NextResponse.json(
       {
         success: true,
+        emailStatus,
+        debug: {
+          hasApiKey: Boolean(env.RESEND_API_KEY),
+          adminEmail: env.GYM_ADMIN_EMAIL || "NOT_SET",
+          resendOutcome: resendDebug,
+        },
         message:
           lang === "ar"
             ? "تم استلام بياناتك بنجاح."
@@ -137,9 +167,9 @@ export async function POST(request) {
       { status: 200 },
     );
   } catch (error) {
-    console.error("Lead route error:", error);
+    console.error("Lead route global error:", error);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "Internal Server Error", details: error.message },
       { status: 500 },
     );
   }
