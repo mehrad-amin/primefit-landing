@@ -40,10 +40,7 @@ export async function POST(request) {
 
     const oneClickWaLink = `https://wa.me/${fullInternationalPhone}?text=${encodeURIComponent(defaultGreeting)}`;
 
-    // محاسبه زمان به افق محلی کشور مقصد باشگاه (مثلاً دبی یا ریاض)
-    const { formattedDateTime, formattedTimeOnly, timeZone } = getLocalClubTime(
-      new Date(),
-    );
+    const { formattedDateTime, timeZone } = getLocalClubTime(new Date());
 
     const selectedSummary =
       [
@@ -59,26 +56,30 @@ export async function POST(request) {
         .join(" | ") ||
       (lang === "ar" ? "تصريح تجريبي عام" : "General Day Pass");
 
-    // ۱. ارسال به گوگل شیت با زمان محلی رسمی
+    // ۱. ارسال به گوگل شیت (با await جهت اطمینان از بسته نشدن کانتینر)
     const googleSheetWebhookUrl = process.env.GOOGLE_SHEET_WEBHOOK_URL;
     if (googleSheetWebhookUrl) {
-      fetch(googleSheetWebhookUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          timestamp: `${formattedDateTime} (${timeZone})`,
-          name: fullName,
-          phone: `+${fullInternationalPhone}`,
-          goal: goal || "-",
-          branch: selectedBranch || "-",
-          reservations: selectedSummary,
-          whatsappLink: oneClickWaLink,
-          language: lang,
-        }),
-      }).catch((err) => console.error("Google Sheet Sync Error:", err));
+      try {
+        await fetch(googleSheetWebhookUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            timestamp: `${formattedDateTime} (${timeZone})`,
+            name: fullName,
+            phone: `+${fullInternationalPhone}`,
+            goal: goal || "-",
+            branch: selectedBranch || "-",
+            reservations: selectedSummary,
+            whatsappLink: oneClickWaLink,
+            language: lang,
+          }),
+        });
+      } catch (err) {
+        console.error("Google Sheet Sync Error:", err);
+      }
     }
 
-    // ۲. ارسال ایمیل با نمایش دقیق ساعت محلی باشگاه
+    // ۲. ارسال ایمیل با Resend (با await حتمی)
     const resendApiKey = process.env.RESEND_API_KEY;
     const adminEmail = process.env.GYM_ADMIN_EMAIL;
 
@@ -99,19 +100,30 @@ export async function POST(request) {
           ? `🔥 مشترك جديد: ${fullName} (${selectedSummary})`
           : `🔥 New Lead: ${fullName} (${selectedSummary})`;
 
-      fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${resendApiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from: "PrimeFit Club <onboarding@resend.dev>",
-          to: [adminEmail],
-          subject: emailSubject,
-          html: emailHtml,
-        }),
-      }).catch((err) => console.error("Resend Network Error:", err));
+      try {
+        const resendRes = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${resendApiKey.trim()}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from: "onboarding@resend.dev",
+            to: [adminEmail.trim()],
+            subject: emailSubject,
+            html: emailHtml,
+          }),
+        });
+
+        const resendData = await resendRes.json();
+        console.log("Resend API Outcome:", resendData);
+      } catch (err) {
+        console.error("Resend Dispatch Error:", err);
+      }
+    } else {
+      console.warn(
+        "Resend Config Missing: API key or Admin Email not detected in env.",
+      );
     }
 
     return NextResponse.json(
