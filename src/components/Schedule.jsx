@@ -54,7 +54,9 @@ export default function Schedule({ lang = "ar", onSelectClass }) {
       onSelectClass({
         id: item.id,
         title: isAr ? item.titleAr : item.titleEn,
-        trainer: isAr ? item.trainerAr : item.trainerEn,
+        trainer: isAr
+          ? item.trainerAr || item.trainer || item.trainerEn
+          : item.trainerEn || item.trainer || item.trainerAr,
         time: isAr ? item.timeAr : item.timeEn,
       });
     }
@@ -179,7 +181,17 @@ export default function Schedule({ lang = "ar", onSelectClass }) {
                           : schedule.trainerLabelEn}
                         :{" "}
                         <strong className="text-white">
-                          {isAr ? item.trainerAr : item.trainerEn}
+                          {isAr
+                            ? item.trainerAr ||
+                              item.trainer ||
+                              item.coachAr ||
+                              item.trainerEn ||
+                              "-"
+                            : item.trainerEn ||
+                              item.trainer ||
+                              item.coachEn ||
+                              item.trainerAr ||
+                              "-"}
                         </strong>
                       </span>
                     </div>

@@ -22,6 +22,10 @@ async function resolveEnvironmentVariables() {
       cfEnv.GOOGLE_SHEET_WEBHOOK_URL ||
       process.env.GOOGLE_SHEET_WEBHOOK_URL ||
       "",
+    // متغیرهای اختصاصی CallMeBot برای واتس‌اپ منشی
+    CALLMEBOT_PHONE: cfEnv.CALLMEBOT_PHONE || process.env.CALLMEBOT_PHONE || "",
+    CALLMEBOT_API_KEY:
+      cfEnv.CALLMEBOT_API_KEY || process.env.CALLMEBOT_API_KEY || "",
   };
 }
 
@@ -104,7 +108,7 @@ export async function POST(request) {
       }
     }
 
-    // ۲. ارسال مستقیم از طریق Resend HTTP API (همراه با Await صریح)
+    // ۲. ارسال مستقیم از طریق Resend HTTP API
     let emailStatus = "not_attempted";
     let resendDebug = null;
 
@@ -150,14 +154,51 @@ export async function POST(request) {
       emailStatus = "missing_env_credentials";
     }
 
+    // ۳. ارسال آنی نوتیفیکیشن به واتس‌اپ منشی با CallMeBot
+    let whatsappAlertStatus = "not_configured";
+
+    if (env.CALLMEBOT_PHONE && env.CALLMEBOT_API_KEY) {
+      try {
+        // تمیزکاری شماره منشی (باید با علامت مثبت یا فرمت استاندارد بین‌المللی باشد)
+        // دریافت شماره منشی و حذف علامت + در صورت وجود
+        const recipientPhone = env.CALLMEBOT_PHONE.replace("+", "").trim();
+
+        const alertMessage =
+          `🚨 *حجز جديد في النادي!* 🏋️‍♂️\n\n` +
+          `👤 *الاسم:* ${fullName}\n` +
+          `📱 *الهاتف:* +${fullInternationalPhone}\n` +
+          `🎯 *الهدف:* ${goal || "-"}\n` +
+          `📍 *الفرع:* ${selectedBranch || "-"}\n` +
+          `📋 *التفاصيل:* ${selectedSummary}\n` +
+          `🕒 *الوقت:* ${formattedDateTime}\n\n` +
+          `💬 *تواصل مع العميل بنقرة واحدة:*\n${oneClickWaLink}`;
+
+        const callMeBotUrl = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(
+          recipientPhone,
+        )}&text=${encodeURIComponent(alertMessage)}&apikey=${encodeURIComponent(
+          env.CALLMEBOT_API_KEY.trim(),
+        )}`;
+
+        const botRes = await fetch(callMeBotUrl);
+        whatsappAlertStatus = botRes.ok ? "sent" : `failed_${botRes.status}`;
+      } catch (waErr) {
+        console.error("CallMeBot WhatsApp Dispatch Error:", waErr);
+        whatsappAlertStatus = "network_error";
+      }
+    }
+
     return NextResponse.json(
       {
         success: true,
         emailStatus,
+        whatsappAlertStatus,
         debug: {
           hasApiKey: Boolean(env.RESEND_API_KEY),
           adminEmail: env.GYM_ADMIN_EMAIL || "NOT_SET",
           resendOutcome: resendDebug,
+          hasWhatsAppAlert: Boolean(
+            env.CALLMEBOT_PHONE && env.CALLMEBOT_API_KEY,
+          ),
         },
         message:
           lang === "ar"

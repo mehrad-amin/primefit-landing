@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { clubData } from "../config/clubData.js";
 import { Check, Sparkles, ArrowLeft, ArrowRight, Shield } from "lucide-react";
 
@@ -13,6 +14,26 @@ export default function Pricing({
   const isAr = lang === "ar";
   const { pricing } = clubData;
 
+  // استفاده از دیتای پیش‌فرض محلی به عنوان وضعیت اولیه برای جلوگیری از افت سئو و تاخیر لود
+  const [plans, setPlans] = useState(pricing.plans || []);
+
+  useEffect(() => {
+    async function loadLivePlans() {
+      try {
+        const res = await fetch("/api/schedule");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.plans && data.plans.length > 0) {
+          setPlans(data.plans);
+        }
+      } catch (err) {
+        console.error("Failed to load live plans:", err);
+      }
+    }
+
+    loadLivePlans();
+  }, []);
+
   const handlePlanClick = (plan) => {
     if (onSelectPlan) {
       onSelectPlan({
@@ -22,7 +43,6 @@ export default function Pricing({
       });
     }
 
-    // اسکرول نرم به فرم ثبت لید
     const formElement = document.getElementById("lead-capture");
     if (formElement) {
       formElement.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -48,7 +68,6 @@ export default function Pricing({
             {isAr ? pricing.subtitleAr : pricing.subtitleEn}
           </p>
 
-          {/* بنر تبلیغاتی مناسبتی */}
           {(isAr ? pricing.promoBannerAr : pricing.promoBannerEn) && (
             <div className="mt-6 inline-block px-5 py-2 rounded-xl bg-gold-500/10 border border-gold-500/30 text-gold-400 text-xs sm:text-sm font-bold animate-pulse">
               {isAr ? pricing.promoBannerAr : pricing.promoBannerEn}
@@ -56,11 +75,13 @@ export default function Pricing({
           )}
         </div>
 
-        {/* کارت‌های ۳ گانه با قیمت بین‌المللی */}
+        {/* کارت‌های ۳ گانه متصل به دیتای زنده */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-          {pricing.plans.map((plan) => {
+          {plans.map((plan) => {
             const isPopular = plan.isPopular;
             const badgeText = isAr ? plan.badgeAr : plan.badgeEn;
+            const featureList =
+              (isAr ? plan.featuresAr : plan.featuresEn) || [];
 
             return (
               <div
@@ -71,7 +92,7 @@ export default function Pricing({
                     : "bg-dark-900/70 border border-neutral-800 hover:border-neutral-700"
                 }`}
               >
-                {/* بج محبوب‌ترین */}
+                {/* بج محبوب‌ترین یا پیشنهاد ویژه */}
                 {badgeText && (
                   <span
                     className={`absolute -top-4 start-1/2 -translate-x-1/2 rtl:translate-x-1/2 px-4 py-1 rounded-full text-xs font-black shadow-lg ${
@@ -96,7 +117,7 @@ export default function Pricing({
                     </span>
                   </div>
 
-                  {/* قیمت فرمت‌شده با ارز انتخاب‌شده در هدر */}
+                  {/* قیمت هماهنگ با تبدیل ارز هدر */}
                   <div className="mb-8 pb-6 border-b border-neutral-800">
                     <div className="flex items-baseline gap-2">
                       <span className="text-3xl sm:text-4xl font-black text-white font-english">
@@ -112,30 +133,28 @@ export default function Pricing({
                     </span>
                   </div>
 
-                  {/* لیست فیچرها */}
+                  {/* لیست ویژگی‌ها */}
                   <div className="space-y-3.5 mb-8">
-                    {(isAr ? plan.featuresAr : plan.featuresEn).map(
-                      (feat, idx) => (
-                        <div key={idx} className="flex items-start gap-3">
-                          <div
-                            className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
-                              isPopular
-                                ? "bg-gold-500 text-dark-950"
-                                : "bg-dark-800 text-gold-400"
-                            }`}
-                          >
-                            <Check className="w-3 h-3 stroke-[3]" />
-                          </div>
-                          <span className="text-xs sm:text-sm text-neutral-300 font-medium">
-                            {feat}
-                          </span>
+                    {featureList.map((feat, idx) => (
+                      <div key={idx} className="flex items-start gap-3">
+                        <div
+                          className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
+                            isPopular
+                              ? "bg-gold-500 text-dark-950"
+                              : "bg-dark-800 text-gold-400"
+                          }`}
+                        >
+                          <Check className="w-3 h-3 stroke-[3]" />
                         </div>
-                      ),
-                    )}
+                        <span className="text-xs sm:text-sm text-neutral-300 font-medium">
+                          {feat}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
-                {/* دکمه انتخاب پلن متصل به فرم */}
+                {/* دکمه انتخاب پلن */}
                 <div>
                   <button
                     type="button"

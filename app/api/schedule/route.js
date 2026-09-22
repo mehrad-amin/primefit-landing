@@ -1,30 +1,81 @@
 import { NextResponse } from "next/server";
 import { clubData } from "../../../src/config/clubData.js";
 
-export async function GET() {
-  const webhookUrl = process.env.GOOGLE_SHEET_WEBHOOK_URL;
+async function resolveEnvironmentVariables() {
+  let cfEnv = {};
+  try {
+    const { getCloudflareContext } = await import("@opennextjs/cloudflare");
+    const ctx = await getCloudflareContext({ async: true });
+    if (ctx && ctx.env) cfEnv = ctx.env;
+  } catch (e) {}
 
-  // اگر هنوز متغیر گوگل شیت ست نشده بود، دیتای پیش‌فرض کانفیگ را برمی‌گرداند
+  return {
+    GOOGLE_SHEET_WEBHOOK_URL:
+      cfEnv.GOOGLE_SHEET_WEBHOOK_URL ||
+      process.env.GOOGLE_SHEET_WEBHOOK_URL ||
+      "",
+  };
+}
+
+export async function GET() {
+  const fallbackClasses = clubData.schedule?.classes || [];
+  const fallbackPlans = clubData.pricing?.plans || [];
+  const env = await resolveEnvironmentVariables();
+  const webhookUrl = env.GOOGLE_SHEET_WEBHOOK_URL;
+
   if (!webhookUrl) {
-    return NextResponse.json({ classes: clubData.schedule?.classes || [] });
+    return NextResponse.json({
+      classes: fallbackClasses,
+      plans: fallbackPlans,
+      source: "fallback_config",
+    });
   }
 
   try {
     const res = await fetch(webhookUrl, {
-      next: { revalidate: 60 }, // کش به مدت ۱ دقیقه
+      next: { revalidate: 10 },
     });
 
-    if (!res.ok) {
-      throw new Error("Failed to fetch from Google Sheets");
-    }
+    if (!res.ok) throw new Error("Google Sheets fetch failed");
 
     const data = await res.json();
-    return NextResponse.json({
-      classes: data.classes || clubData.schedule?.classes || [],
-    });
+
+    // تبدیل ویژگی‌های متنی جداشده با کاما به آرایه
+    const formattedPlans = (data.plans || fallbackPlans).map((p) => ({
+      ...p,
+      isPopular: Boolean(p.isPopular === true || p.isPopular === "TRUE"),
+      featuresAr: Array.isArray(p.featuresAr)
+        ? p.featuresAr
+        : (p.featuresAr || "")
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean),
+      featuresEn: Array.isArray(p.featuresEn)
+        ? p.featuresEn
+        : (p.featuresEn || "")
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean),
+    }));
+
+    return NextResponse.json(
+      {
+        classes: data.classes || fallbackClasses,
+        plans: formattedPlans,
+        source: "live_sheet",
+      },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=10, stale-while-revalidate=30",
+        },
+      },
+    );
   } catch (error) {
-    console.error("Error fetching dynamic schedule:", error);
-    // فال‌بک امن به دیتای لوکال
-    return NextResponse.json({ classes: clubData.schedule?.classes || [] });
+    console.error("Schedule/Plans API error:", error);
+    return NextResponse.json({
+      classes: fallbackClasses,
+      plans: fallbackPlans,
+      source: "fallback_error",
+    });
   }
 }
