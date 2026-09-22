@@ -20,7 +20,7 @@ export default function Pricing({
   useEffect(() => {
     async function loadLivePlans() {
       try {
-        const res = await fetch("/api/schedule");
+        const res = await fetch("/api/schedule", { cache: "no-store" });
         if (!res.ok) return;
         const data = await res.json();
         if (data.plans && data.plans.length > 0) {
