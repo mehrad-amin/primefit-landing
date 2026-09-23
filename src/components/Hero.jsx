@@ -18,16 +18,35 @@ export default function Hero({ lang = "ar" }) {
 
   return (
     <section className="relative min-h-[92vh] lg:min-h-screen flex items-center justify-center pt-28 pb-16 overflow-hidden bg-dark-950">
-      {/* پس‌زمینه سینمایی با اورلی گرادیان تم لوکس */}
-      <div className="absolute inset-0 z-0">
-        <div
-          className="absolute inset-0 bg-cover bg-[60%_top] sm:bg-[center_top] md:bg-center opacity-30 md:opacity-25 scale-100 md:scale-105 transform transition-transform duration-10000 ease-out"
-          style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2070&auto=format&fit=crop')`,
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-dark-950 via-dark-950/75 to-dark-950/45" />
-        <div className="absolute inset-0 bg-radial from-gold-500/10 via-transparent to-transparent opacity-50" />
+      {/* پس‌زمینه سینمایی ویدیویی با اورلی دارک */}
+      {/* پس‌زمینه بهینه‌شده برای وضوح بالا در موبایل */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        {/* ۱. نسخه موبایل */}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          poster="/hero-poster-mobile.png"
+          className="md:hidden absolute inset-0 w-full h-full object-cover object-center opacity-85 contrast-105"
+        >
+          <source src="/hero-video-1.mp4" type="video/mp4" />
+        </video>
+
+        {/* ۲. نسخه دسکتاپ */}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          poster="/poster.png"
+          className="hidden md:block absolute inset-0 w-full h-full object-cover object-center opacity-65"
+        >
+          <source src="/hero-video.mp4" type="video/mp4" />
+        </video>
+
+        {/* لایه گرادیان بسیار سبک (بدون تیرگی در مرکز صفحه) */}
+        <div className="absolute inset-0 bg-gradient-to-b from-dark-950/50 via-transparent to-dark-950" />
       </div>
 
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
