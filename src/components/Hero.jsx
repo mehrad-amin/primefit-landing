@@ -21,12 +21,12 @@ export default function Hero({ lang = "ar" }) {
       {/* پس‌زمینه سینمایی با اورلی گرادیان تم لوکس */}
       <div className="absolute inset-0 z-0">
         <div
-          className="absolute inset-0 bg-cover bg-center opacity-25 scale-105 transform transition-transform duration-10000 ease-out"
+          className="absolute inset-0 bg-cover bg-[60%_top] sm:bg-[center_top] md:bg-center opacity-30 md:opacity-25 scale-100 md:scale-105 transform transition-transform duration-10000 ease-out"
           style={{
             backgroundImage: `url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2070&auto=format&fit=crop')`,
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-dark-950 via-dark-950/70 to-dark-950/40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-dark-950 via-dark-950/75 to-dark-950/45" />
         <div className="absolute inset-0 bg-radial from-gold-500/10 via-transparent to-transparent opacity-50" />
       </div>
 
