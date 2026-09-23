@@ -16,6 +16,7 @@ import Footer from "@/src/components/Footer.jsx";
 import Header from "@/src/components/Header.jsx";
 import Hero from "@/src/components/Hero.jsx";
 import Pricing from "@/src/components/Pricing.jsx";
+import StickyBookingBar from "@/src/components/StickyBookingBar.jsx";
 
 export default function HomePage() {
   const [lang, setLang] = useState("ar");
@@ -23,7 +24,7 @@ export default function HomePage() {
     clubData.activeCurrencyCode || "USD",
   );
 
-  // استیت متمرکز برای ۳ انتخاب همزمان
+  // استیت متمرکز رزروها
   const [selectedBookings, setSelectedBookings] = useState({
     plan: null,
     trainer: null,
@@ -36,27 +37,30 @@ export default function HomePage() {
     document.documentElement.lang = lang;
   }, [lang]);
 
-  // اسکرول نرم به فرم بعد از انتخاب
-  const scrollToForm = () => {
-    setTimeout(() => {
-      const el = document.getElementById("lead-capture");
-      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 50);
+  // اسکرول نرم به فرم تنها هنگام کلیک کاربر روی دکمه نوار شناور
+  const handleProceedToForm = () => {
+    const el = document.getElementById("lead-capture");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   };
-
+  // بررسی وجود هرگونه رزرو فعال
+  const hasActiveBooking = Boolean(
+    selectedBookings.plan ||
+    selectedBookings.trainer ||
+    selectedBookings.classItem,
+  );
+  // انتخاب‌ها بدون پرتاب ناگهانی کاربر ذخیره می‌شوند
   const handleSelectPlan = (plan) => {
     setSelectedBookings((prev) => ({ ...prev, plan }));
-    scrollToForm();
   };
 
   const handleSelectTrainer = (trainer) => {
     setSelectedBookings((prev) => ({ ...prev, trainer }));
-    scrollToForm();
   };
 
   const handleSelectClass = (classItem) => {
     setSelectedBookings((prev) => ({ ...prev, classItem }));
-    scrollToForm();
   };
 
   const handleClearBooking = (type) => {
@@ -64,7 +68,7 @@ export default function HomePage() {
   };
 
   return (
-    <main className="min-h-screen bg-dark-950 text-neutral-100 flex flex-col">
+    <main className="min-h-screen bg-dark-950 text-neutral-100 flex flex-col relative">
       <Header
         lang={lang}
         onLanguageChange={setLang}
@@ -94,14 +98,22 @@ export default function HomePage() {
 
       <Faq lang={lang} />
 
-      {/* فرم با بج‌های فعال */}
+      {/* فرم دریافت لید با بج‌های متصل */}
       <Footer
         lang={lang}
         selectedBookings={selectedBookings}
         onClearBooking={handleClearBooking}
       />
 
-      <FloatingWhatsApp lang={lang} />
+      <StickyBookingBar
+        lang={lang}
+        selectedBookings={selectedBookings}
+        onClearBooking={handleClearBooking}
+        onProceedToForm={handleProceedToForm}
+      />
+
+      {/* دکمه واتساپ هوشمند */}
+      <FloatingWhatsApp lang={lang} hasActiveBar={hasActiveBooking} />
     </main>
   );
 }

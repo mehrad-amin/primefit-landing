@@ -9,7 +9,6 @@ import {
   Clock,
   MapPin,
   Phone,
-  MessageCircle,
   ShieldCheck,
   AlertCircle,
   X,
@@ -50,13 +49,32 @@ export default function Footer({
 
   const hasAnyBadge = Boolean(currentPlan || currentTrainer || currentClass);
 
+  // پاک‌سازی ورودی تلفن و فیلتر کردن کاراکترهای نامعتبر
+  const handlePhoneChange = (e) => {
+    const rawValue = e.target.value.replace(/[^0-9]/g, "");
+    setFormData((prev) => ({ ...prev, phone: rawValue }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus({ loading: true, success: false, error: null });
 
+    // اعتبارسنجی شماره تماس منطقه خلیج فارس (حداقل ۷ تا ۹ رقم بدون احتساب کد کشور)
+    if (formData.phone.trim().length < 7 || formData.phone.trim().length > 11) {
+      setStatus({
+        loading: false,
+        success: false,
+        error: isAr
+          ? "يرجى إدخال رقم هاتف صحيح مكوّن من 7 إلى 10 أرقام."
+          : "Please enter a valid phone number (7 to 10 digits).",
+      });
+      return;
+    }
+
     try {
       const payload = {
         ...formData,
+        fullPhoneNumber: `${formData.countryCode}${formData.phone}`,
         lang,
         bookings: {
           plan: currentPlan
@@ -112,44 +130,44 @@ export default function Footer({
   };
 
   return (
-    <footer className="bg-dark-950 border-t border-neutral-800/80 relative overflow-hidden select-none">
+    <footer className="bg-dark-950 border-t border-neutral-800/80 relative overflow-hidden select-none pb-28 sm:pb-24">
       <div className="absolute top-0 start-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gold-500/5 rounded-full blur-3xl pointer-events-none" />
 
-      {/* فرم دریافت لید */}
-      <section id="lead-capture" className="py-20 relative z-10">
+      {/* فرم ثبت درخواست لید */}
+      <section id="lead-capture" className="py-20 relative z-10 scroll-mt-6">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-gradient-to-b from-dark-900 to-dark-850 border border-neutral-800 rounded-3xl p-6 sm:p-12 shadow-2xl relative overflow-hidden">
-            {/* تیتر */}
+            {/* تیتر ارتقایافته */}
             <div className="text-center max-w-2xl mx-auto mb-10">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-dark-800 border border-gold-500/30 text-gold-400 text-xs font-semibold mb-4">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>
                   {isAr
-                    ? "عرض تجربة اليوم الواحد المجاني"
-                    : "Complimentary 1-Day Pass"}
+                    ? "طلب اشتراك وتأكيد الحجز المبدئي"
+                    : "Membership Request & Priority Booking"}
                 </span>
               </div>
               <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
                 {isAr
-                  ? "ابدأ رحلتك الرياضية اليوم مجاناً"
-                  : "Start Your Fitness Journey Today"}
+                  ? "ثبّت حجزك وابدأ تجربة التدريب الفاخرة"
+                  : "Lock Your Reservation & Experience Elite Training"}
               </h2>
               <p className="mt-3 text-neutral-400 text-xs sm:text-sm leading-relaxed">
                 {isAr
-                  ? "سجل بياناتك وسيتواصل معك فريق الاستقبال فوراً لتأكيد الحجز وتفعيل تصريح الدخول المجاني."
-                  : "Register your details now and our concierge team will contact you to activate your VIP pass."}
+                  ? "سجل بياناتك وسيصلك إشعار فوري وتواصل مباشر من إدارة الاشتراکات لتأكيد الموعد واستلام بطاقتك."
+                  : "Fill in your details to secure your spot. Our concierge team will reach out directly on WhatsApp to finalize your onboarding."}
               </p>
             </div>
 
-            {/* بج‌های گزینه‌های انتخابی کاربر */}
+            {/* بج‌های گزینه‌های انتخاب شده */}
             {hasAnyBadge && (
               <div className="mb-8 p-4 rounded-2xl bg-dark-950/80 border border-gold-500/30 space-y-2.5">
                 <div className="text-xs font-bold text-gold-400 mb-2 flex items-center gap-2">
                   <Sparkles className="w-3.5 h-3.5" />
                   <span>
                     {isAr
-                      ? "اختياراتك المحجوزة للمتابعة:"
-                      : "Your Selected Reservations:"}
+                      ? "تفاصيل طلبك المحجوز مبدئياً:"
+                      : "Your Reserved Selections:"}
                   </span>
                 </div>
 
@@ -252,13 +270,13 @@ export default function Footer({
                 <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto animate-bounce" />
                 <h3 className="text-lg font-bold text-white">
                   {isAr
-                    ? "تم استلام طلبك بنجاح!"
-                    : "Application Submitted Successfully!"}
+                    ? "تم تأكيد طلب الحجز المبدئي بنجاح!"
+                    : "Reservation Request Received Successfully!"}
                 </h3>
                 <p className="text-xs text-neutral-300 max-w-md mx-auto leading-relaxed">
                   {isAr
-                    ? "شكراً لتسجيلك. تم تحويل بياناتك وخياراتك إلى مكتب الاستقبال، وسيتم التواصل معك فوراً عبر واتساب لتسليمك تصريح الدخول."
-                    : "Thank you! Your details and selections have been forwarded to our team. We will message you on WhatsApp shortly."}
+                    ? "شكراً لاختيارك. تم إرسال تفاصيل اختياراتك مباشرة إلى الإدارة، وسيتواصل معك الموظف المختص عبر واتساب لتفعيل الاشتراك."
+                    : "Thank you for registering. Your booking details have been submitted. Our concierge team will reach out via WhatsApp immediately."}
                 </p>
               </div>
             ) : (
@@ -342,7 +360,6 @@ export default function Footer({
 
                 {/* ردیف دوم: شماره تماس و دراپ‌داون انتخاب شعبه */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* شماره تماس با کد کشور */}
                   <div>
                     <label className="block text-xs text-neutral-300 font-medium mb-1.5">
                       {isAr
@@ -377,16 +394,14 @@ export default function Footer({
                         required
                         placeholder="50 000 0000"
                         value={formData.phone}
-                        onChange={(e) =>
-                          setFormData({ ...formData, phone: e.target.value })
-                        }
+                        onChange={handlePhoneChange}
+                        maxLength={12}
                         className="w-full bg-dark-800/90 px-4 py-3.5 text-white text-sm focus:outline-none font-english tracking-wider"
                         dir="ltr"
                       />
                     </div>
                   </div>
 
-                  {/* فیلد انتخاب شعبه (Target Branch) */}
                   <div>
                     <label className="block text-xs text-neutral-300 font-medium mb-1.5">
                       {isAr
@@ -421,7 +436,7 @@ export default function Footer({
                   </div>
                 </div>
 
-                {/* دکمه ارسال */}
+                {/* دکمه ارسال با برچسب تبدیل‌کننده */}
                 <button
                   type="submit"
                   disabled={status.loading}
@@ -433,8 +448,8 @@ export default function Footer({
                     <>
                       <span>
                         {isAr
-                          ? "تأكيد وحجز تصريح اليوم المجاني"
-                          : "Claim Free 1-Day Pass"}
+                          ? "طلب اشتراك وتأكيد الحجز المبدئي"
+                          : "Request Membership & Reserve Spot"}
                       </span>
                       <Send className="w-4 h-4 rtl:rotate-180 ltr:rotate-0" />
                     </>
@@ -445,8 +460,8 @@ export default function Footer({
                   <ShieldCheck className="w-3.5 h-3.5 text-gold-400" />
                   <span>
                     {isAr
-                      ? "بياناتك في أمان تام ولا نشارك أرقام الاتصال مع أي جهة خارجية إطلاقاً."
-                      : "Your personal information is 100% confidential and secure."}
+                      ? "بياناتك في أمان تام وتستخدم فقط لتأكيد اشتراكك المباشر مع النادي."
+                      : "Your personal details are strictly private and used solely for club onboarding."}
                   </span>
                 </p>
               </form>
@@ -474,50 +489,6 @@ export default function Footer({
                   ? "البيئة التدريبية المتكاملة والمصممة لتمنحك نتائج حقيقية وأعلى معايير الخصوصية والرفاهية."
                   : "Engineered for exceptional athletic performance, privacy, and results."}
               </p>
-
-              <div className="flex items-center gap-3 pt-2">
-                {clubData.socials?.instagram && (
-                  <a
-                    href={clubData.socials.instagram}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Instagram"
-                    className="w-9 h-9 rounded-xl bg-dark-850 border border-neutral-800 flex items-center justify-center text-neutral-300 hover:text-gold-400 hover:border-gold-500/50 transition-all"
-                  >
-                    <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-                    </svg>
-                  </a>
-                )}
-
-                {clubData.socials?.tiktok && (
-                  <a
-                    href={clubData.socials.tiktok}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="TikTok"
-                    className="w-9 h-9 rounded-xl bg-dark-850 border border-neutral-800 flex items-center justify-center text-neutral-300 hover:text-gold-400 hover:border-gold-500/50 transition-all"
-                  >
-                    <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                      <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.298-.002.595.042.88.13V9.4a6.33 6.33 0 0 0-1-.08A6.34 6.34 0 0 0 3 15.66a6.34 6.34 0 0 0 10.86 4.45 6.27 6.27 0 0 0 1.88-4.47V8.58a8.28 8.28 0 0 0 4.85 1.56V6.69z" />
-                    </svg>
-                  </a>
-                )}
-
-                {clubData.socials?.snapchat && (
-                  <a
-                    href={clubData.socials.snapchat}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Snapchat"
-                    className="w-9 h-9 rounded-xl bg-dark-850 border border-neutral-800 flex items-center justify-center text-neutral-300 hover:text-gold-400 hover:border-gold-500/50 transition-all"
-                  >
-                    <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                      <path d="M12.003 2c-3.486 0-6.143 2.584-6.143 5.999 0 .68.148 1.487.354 2.152.091.293.18.577.165.733-.042.44-.457.653-.872.868-.458.238-.973.504-.973 1.05 0 .426.312.753.843.905.748.214 1.428.09 2.052-.027.348-.065.732-.137 1.135.08.414.225.592.594.673.997.098.49.02.946-.226 1.341-.304.49-.785.836-1.324 1.096-.28.134-.582.261-.837.42-.32.2-.497.45-.497.778 0 .546.54.914 1.254 1.07.607.133 1.353.151 2.221.053.472-.053.94-.176 1.455-.176.438 0 .84.093 1.233.284.453.22.955.597 1.543.597.587 0 1.089-.377 1.542-.597.393-.19.795-.284 1.233-.284.515 0 .983.123 1.455.176.868.098 1.614.08 2.221-.053.714-.156 1.254-.524 1.254-1.07 0-.328-.177-.578-.497-.778-.255-.159-.557-.286-.837-.42-.539-.26-1.02-.606-1.324-1.096-.246-.395-.324-.851-.226-1.341.081-.403.259-.772.673-.997.403-.217.787-.145 1.135-.08.624.117 1.304.241 2.052.027.531-.152.843-.479.843-.905 0-.546-.515-.812-.973-1.05-.415-.215-.83-.428-.872-.868-.015-.156.074-.44.165-.733.206-.665.354-1.472.354-2.152 0-3.415-2.657-5.999-6.143-5.999z" />
-                    </svg>
-                  </a>
-                )}
-              </div>
             </div>
 
             <div className="space-y-3">
@@ -552,55 +523,25 @@ export default function Footer({
 
             <div className="space-y-3">
               <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                {/* آیکون برداری رسمی واتساپ در تیتر */}
-                <svg
-                  className="w-4 h-4 shrink-0"
-                  viewBox="0 0 48 48"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  aria-hidden="true"
-                >
-                  <circle cx="24" cy="24" r="24" fill="#25D366" />
-                  <path
-                    fillRule="evenodd"
-                    clipRule="evenodd"
-                    d="M34.6 13.4C31.8 10.6 28.1 9 24.1 9C15.8 9 9.1 15.7 9.1 24C9.1 26.6 9.8 29.2 11.1 31.5L9 39L16.8 36.9C19 38.1 21.5 38.8 24.1 38.8H24.1C32.4 38.8 39.1 32.1 39.1 23.8C39.1 19.8 37.5 16.2 34.6 13.4ZM24.1 36.3C21.9 36.3 19.7 35.7 17.8 34.6L17.3 34.3L12.7 35.5L13.9 31L13.6 30.5C12.4 28.6 11.7 26.3 11.7 24C11.7 17.2 17.3 11.6 24.1 11.6C27.4 11.6 30.5 12.9 32.8 15.2C35.1 17.5 36.4 20.6 36.4 23.9C36.4 30.7 30.9 36.3 24.1 36.3ZM30.9 27.2C30.5 27 28.7 26.1 28.4 26C28.1 25.9 27.8 25.8 27.6 26.2C27.3 26.6 26.6 27.4 26.4 27.7C26.2 27.9 26 28 25.6 27.8C25.2 27.6 24.1 27.2 22.7 26C21.6 25 20.9 23.8 20.7 23.4C20.5 23 20.7 22.8 20.9 22.6C21.1 22.4 21.3 22.1 21.5 21.9C21.7 21.7 21.8 21.5 21.9 21.3C22 21.1 22 20.9 21.9 20.7C21.8 20.5 21.1 18.9 20.9 18.2C20.6 17.5 20.3 17.6 20.1 17.6H19.5C19.3 17.6 18.9 17.7 18.6 18C18.3 18.3 17.4 19.1 17.4 20.8C17.4 22.5 18.6 24.1 18.8 24.3C19 24.5 21.3 28.1 24.8 29.6C25.6 30 26.3 30.2 26.8 30.4C27.7 30.7 28.5 30.6 29.1 30.5C29.8 30.4 31.2 29.6 31.5 28.8C31.8 28 31.8 27.3 31.7 27.2C31.6 27.3 31.3 27.4 30.9 27.2Z"
-                    fill="#FFFFFF"
-                  />
-                </svg>
                 <span>
                   {isAr ? "خدمة الأعضاء الفورية" : "Instant Concierge"}
                 </span>
               </h4>
-
               <p className="text-neutral-400 leading-relaxed text-xs">
                 {isAr
                   ? "تفضل بمحادثتنا مباشرة للحصول على رد فوري وتأكيد الحجز."
                   : "Chat with our membership consultants directly via WhatsApp."}
               </p>
-
               <a
-                href={`https://wa.me/${clubData.brand?.whatsappNumber}?text=${encodeURIComponent(isAr ? clubData.brand?.defaultWaMessageAr || "" : clubData.brand?.defaultWaMessageEn || "")}`}
+                href={`https://wa.me/${clubData.brand?.whatsappNumber}?text=${encodeURIComponent(
+                  isAr
+                    ? clubData.brand?.defaultWaMessageAr || ""
+                    : clubData.brand?.defaultWaMessageEn || "",
+                )}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#25D366]/10 border border-[#25D366]/30 text-[#25D366] hover:bg-[#25D366] hover:text-dark-950 font-bold transition-all text-xs group"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#25D366]/10 border border-[#25D366]/30 text-[#25D366] hover:bg-[#25D366] hover:text-dark-950 font-bold transition-all text-xs"
               >
-                {/* لوگوی رسمی دو لایه درون دکمه با افکت تغییر حالت (Hover) */}
-                <svg
-                  className="w-4 h-4 shrink-0 group-hover:scale-110 transition-transform duration-200"
-                  viewBox="0 0 48 48"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  aria-hidden="true"
-                >
-                  <circle cx="24" cy="24" r="24" fill="#25D366" />
-                  <path
-                    fillRule="evenodd"
-                    clipRule="evenodd"
-                    d="M34.6 13.4C31.8 10.6 28.1 9 24.1 9C15.8 9 9.1 15.7 9.1 24C9.1 26.6 9.8 29.2 11.1 31.5L9 39L16.8 36.9C19 38.1 21.5 38.8 24.1 38.8H24.1C32.4 38.8 39.1 32.1 39.1 23.8C39.1 19.8 37.5 16.2 34.6 13.4ZM24.1 36.3C21.9 36.3 19.7 35.7 17.8 34.6L17.3 34.3L12.7 35.5L13.9 31L13.6 30.5C12.4 28.6 11.7 26.3 11.7 24C11.7 17.2 17.3 11.6 24.1 11.6C27.4 11.6 30.5 12.9 32.8 15.2C35.1 17.5 36.4 20.6 36.4 23.9C36.4 30.7 30.9 36.3 24.1 36.3ZM30.9 27.2C30.5 27 28.7 26.1 28.4 26C28.1 25.9 27.8 25.8 27.6 26.2C27.3 26.6 26.6 27.4 26.4 27.7C26.2 27.9 26 28 25.6 27.8C25.2 27.6 24.1 27.2 22.7 26C21.6 25 20.9 23.8 20.7 23.4C20.5 23 20.7 22.8 20.9 22.6C21.1 22.4 21.3 22.1 21.5 21.9C21.7 21.7 21.8 21.5 21.9 21.3C22 21.1 22 20.9 21.9 20.7C21.8 20.5 21.1 18.9 20.9 18.2C20.6 17.5 20.3 17.6 20.1 17.6H19.5C19.3 17.6 18.9 17.7 18.6 18C18.3 18.3 17.4 19.1 17.4 20.8C17.4 22.5 18.6 24.1 18.8 24.3C19 24.5 21.3 28.1 24.8 29.6C25.6 30 26.3 30.2 26.8 30.4C27.7 30.7 28.5 30.6 29.1 30.5C29.8 30.4 31.2 29.6 31.5 28.8C31.8 28 31.8 27.3 31.7 27.2C31.6 27.3 31.3 27.4 30.9 27.2Z"
-                    fill="#FFFFFF"
-                  />
-                </svg>
                 <span>
                   {isAr ? "بدء محادثة واتساب الآن" : "Start WhatsApp Chat"}
                 </span>
@@ -614,14 +555,6 @@ export default function Footer({
               {isAr ? clubData.brand?.nameAr : clubData.brand?.name}.{" "}
               {isAr ? "جميع الحقوق محفوظة." : "All Rights Reserved."}
             </p>
-            <div className="flex gap-4 text-neutral-400">
-              <a href="#" className="hover:text-gold-400 transition-colors">
-                {isAr ? "سياسة الخصوصية" : "Privacy Policy"}
-              </a>
-              <a href="#" className="hover:text-gold-400 transition-colors">
-                {isAr ? "الشروط والأحكام" : "Terms of Service"}
-              </a>
-            </div>
           </div>
         </div>
       </div>

@@ -29,11 +29,6 @@ export default function Trainers({ lang = "ar", onSelectTrainer }) {
           : trainer.roleEn || trainer.role,
       });
     }
-
-    const formElement = document.getElementById("lead-capture");
-    if (formElement) {
-      formElement.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
   };
 
   return (

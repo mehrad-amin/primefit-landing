@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { clubData } from "../config/clubData.js";
 import {
   Calendar,
@@ -12,16 +12,17 @@ import {
 } from "lucide-react";
 
 export default function Schedule({ lang = "ar", onSelectClass }) {
-  if (!clubData.features?.showSchedule) return null;
-
-  const isAr = lang === "ar";
+  // ۱. تمامی هوک‌ها پیش از هرگونه شرط یا Return زودهنگام تعریف می‌شوند
   const { schedule } = clubData;
+  const isAr = lang === "ar";
+  const showSchedule = Boolean(clubData.features?.showSchedule);
+
   const [selectedDay, setSelectedDay] = useState("all");
-  const [classesList, setClassesList] = useState(schedule.classes || []);
+  const [classesList, setClassesList] = useState(schedule?.classes || []);
   const [isLoading, setIsLoading] = useState(false);
 
-  // دریافت زنده آخرین ظرفیت‌ها از شیت
-  const fetchLiveSchedule = async () => {
+  // ۲. مدیریت دریافت دیتا با useCallback برای جلوگیری از بازسازی تابع
+  const fetchLiveSchedule = useCallback(async () => {
     setIsLoading(true);
     try {
       const res = await fetch("/api/schedule");
@@ -36,11 +37,36 @@ export default function Schedule({ lang = "ar", onSelectClass }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchLiveSchedule();
-  }, []);
+    if (!showSchedule) return;
+
+    let isMounted = true;
+
+    async function loadData() {
+      try {
+        const res = await fetch("/api/schedule");
+        if (res.ok && isMounted) {
+          const data = await res.json();
+          if (Array.isArray(data.classes) && data.classes.length > 0) {
+            setClassesList(data.classes);
+          }
+        }
+      } catch (err) {
+        console.error("Could not load initial live schedule:", err);
+      }
+    }
+
+    loadData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [showSchedule]);
+
+  // ۳. شرط Return زودهنگام بعد از اجرای تمام هوک‌ها
+  if (!showSchedule || !schedule) return null;
 
   const filteredClasses =
     selectedDay === "all"
@@ -82,7 +108,7 @@ export default function Schedule({ lang = "ar", onSelectClass }) {
           </p>
         </div>
 
-        {/* فیلتر روزهای هفته و دکمه رفرش زنده */}
+        {/* فیلتر روزهای هفته و دکمه رفرش دستی */}
         <div className="flex items-center justify-between sm:justify-center gap-2 overflow-x-auto pb-4 mb-10 no-scrollbar">
           <div className="flex items-center gap-2">
             {schedule.days?.map((day) => {
@@ -116,7 +142,7 @@ export default function Schedule({ lang = "ar", onSelectClass }) {
           </button>
         </div>
 
-        {/* کارت‌های کلاس‌ها */}
+        {/* لیست کلاس‌ها */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredClasses.map((item) => {
             const isFull = item.seatsLeft <= 0;

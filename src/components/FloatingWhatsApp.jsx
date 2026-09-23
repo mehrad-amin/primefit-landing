@@ -2,7 +2,10 @@
 
 import { clubData } from "../config/clubData.js";
 
-export default function FloatingWhatsApp({ lang = "ar" }) {
+export default function FloatingWhatsApp({
+  lang = "ar",
+  hasActiveBar = false,
+}) {
   const isAr = lang === "ar";
   const { brand } = clubData;
 
@@ -15,13 +18,18 @@ export default function FloatingWhatsApp({ lang = "ar" }) {
   const waUrl = `https://wa.me/${brand?.whatsappNumber || "971500000000"}?text=${encodeURIComponent(defaultMsg)}`;
 
   return (
-    <div className="fixed bottom-6 end-6 z-50 flex items-center group">
-      {/* پیام حبابی راهنما با انیمیشن ملایم */}
+    <aside
+      aria-label={isAr ? "دعم واتساب الفوري" : "Instant WhatsApp Support"}
+      className={`fixed end-6 z-50 flex items-center group transition-all duration-300 ease-in-out ${
+        hasActiveBar ? "bottom-20 sm:bottom-22" : "bottom-6"
+      }`}
+    >
+      {/* پیام حبابی راهنما */}
       <span className="hidden md:inline-block me-3 px-3.5 py-1.5 rounded-full bg-dark-900/90 backdrop-blur-md border border-neutral-700 text-xs font-bold text-neutral-200 shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
         {isAr ? "فريق خدمة الأعضاء متصل الآن" : "Member Concierge is Online"}
       </span>
 
-      {/* دکمه شناور دایره‌ای/کپسولی با آیکون رسمی ۲ لایه واتساپ */}
+      {/* دکمه شناور با ترنزیشن نرم */}
       <a
         href={waUrl}
         target="_blank"
@@ -31,7 +39,6 @@ export default function FloatingWhatsApp({ lang = "ar" }) {
         }
         className="flex items-center gap-2.5 p-3 sm:px-4 sm:py-3 bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold rounded-full shadow-2xl shadow-[#25D366]/40 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
       >
-        {/* آیکون رسمی و دقیق ۲ لایه WhatsApp */}
         <svg
           className="w-6 h-6 shrink-0 drop-shadow-[0_2px_6px_rgba(0,0,0,0.25)]"
           viewBox="0 0 48 48"
@@ -39,10 +46,7 @@ export default function FloatingWhatsApp({ lang = "ar" }) {
           xmlns="http://www.w3.org/2000/svg"
           aria-hidden="true"
         >
-          {/* پس‌زمینه مدور سبز برند */}
           <circle cx="24" cy="24" r="24" fill="#25D366" />
-
-          {/* بدنه پیام و گوشی سفید رسمی */}
           <path
             fillRule="evenodd"
             clipRule="evenodd"
@@ -55,6 +59,6 @@ export default function FloatingWhatsApp({ lang = "ar" }) {
           {isAr ? "تواصل معنا فوراً" : "Chat Online"}
         </span>
       </a>
-    </div>
+    </aside>
   );
 }

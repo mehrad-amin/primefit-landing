@@ -42,11 +42,6 @@ export default function Pricing({
         price: clubData.formatPrice(plan.price, lang, currentCurrency),
       });
     }
-
-    const formElement = document.getElementById("lead-capture");
-    if (formElement) {
-      formElement.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
   };
 
   return (
