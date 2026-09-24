@@ -33,8 +33,8 @@ export const clubData = {
         "بيئة تدريب استثنائية مزودة بأحدث التجهيزات الرياضية عالمياً، صالات خاصة ومستقلة 100% للسيدات، ومدربين حاصلين على أعلى الشهادات الدولية لتصل لهدفك بأسرع وقت.",
       descEn:
         "An unmatched training ecosystem powered by Olympic-grade equipment, 100% private ladies-only zones, and internationally accredited master coaches dedicated to your results.",
-      ctaPrimaryAr: "احصل على تصريح يومي مجاني",
-      ctaPrimaryEn: "Claim Free 1-Day Pass",
+      ctaPrimaryAr: "ابدأ عضويتك المميزة الآن",
+      ctaPrimaryEn: "Book Your Elite Membership",
       ctaSecondaryAr: "تواصل عبر واتساب",
       ctaSecondaryEn: "Instant WhatsApp Chat",
     },
