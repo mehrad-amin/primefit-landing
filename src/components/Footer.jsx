@@ -16,6 +16,7 @@ import {
   UserCheck,
   CreditCard,
   Building2,
+  UserPlus,
 } from "lucide-react";
 
 export default function Footer({
@@ -39,8 +40,12 @@ export default function Footer({
   const [status, setStatus] = useState({
     loading: false,
     success: false,
+    isWaitlist: false,
     error: null,
   });
+
+  // وضعیت باز شدن باکس پیشنهاد لیست انتظار در صورت تکمیل ظرفیت
+  const [waitlistPrompt, setWaitlistPrompt] = useState(null);
 
   const currentPlan = selectedBookings?.plan || null;
   const currentTrainer = selectedBookings?.trainer || null;
@@ -49,21 +54,24 @@ export default function Footer({
 
   const hasAnyBadge = Boolean(currentPlan || currentTrainer || currentClass);
 
-  // پاک‌سازی ورودی تلفن و فیلتر کردن کاراکترهای نامعتبر
   const handlePhoneChange = (e) => {
     const rawValue = e.target.value.replace(/[^0-9]/g, "");
     setFormData((prev) => ({ ...prev, phone: rawValue }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setStatus({ loading: true, success: false, error: null });
+  const executeSubmission = async (joinWaitlist = false) => {
+    setStatus({
+      loading: true,
+      success: false,
+      isWaitlist: false,
+      error: null,
+    });
 
-    // اعتبارسنجی شماره تماس منطقه خلیج فارس (حداقل ۷ تا ۹ رقم بدون احتساب کد کشور)
-    if (formData.phone.trim().length < 7 || formData.phone.trim().length > 11) {
+    if (formData.phone.trim().length < 7 || formData.phone.trim().length > 12) {
       setStatus({
         loading: false,
         success: false,
+        isWaitlist: false,
         error: isAr
           ? "يرجى إدخال رقم هاتف صحيح مكوّن من 7 إلى 10 أرقام."
           : "Please enter a valid phone number (7 to 10 digits).",
@@ -76,6 +84,7 @@ export default function Footer({
         ...formData,
         fullPhoneNumber: `${formData.countryCode}${formData.phone}`,
         lang,
+        joinWaitlist,
         bookings: {
           plan: currentPlan
             ? currentPlan.title || currentPlan.nameAr || currentPlan.nameEn
@@ -87,8 +96,9 @@ export default function Footer({
               currentTrainer.nameEn
             : null,
           classSession: currentClass
-            ? currentClass.title || currentClass.titleAr || currentClass.titleEn
+            ? currentClass.titleAr || currentClass.title || currentClass.titleEn
             : null,
+          classId: currentClass?.id || null,
           classTime: currentClass?.time || null,
         },
       };
@@ -99,15 +109,43 @@ export default function Footer({
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) {
+      const result = await res.json();
+
+      // ۱. اگر ظرفیت کلاس تکمیل باشد
+      if (result.status === "CLASS_FULL") {
+        setWaitlistPrompt({
+          message: isAr
+            ? "عذراً، مقاعد هذه الحصة مكتملة حالياً بالكامل! هل تود الانضمام إلى قائمة الانتظار ليتم التواصل معك فور توفر مقعد؟"
+            : "Sorry, this class is currently fully booked! Would you like to join the priority waitlist to be notified once a spot opens?",
+        });
+        setStatus({
+          loading: false,
+          success: false,
+          isWaitlist: false,
+          error: null,
+        });
+        return;
+      }
+
+      // ۲. بررسی خطاهای سیستمی دیگر
+      if (!res.ok || result.success === false) {
         throw new Error(
-          isAr
-            ? "حدث خطأ أثناء إرسال البيانات. يرجى المحاولة لاحقاً."
-            : "An error occurred while submitting. Please try again.",
+          result.message ||
+            (isAr
+              ? "حدث خطأ أثناء إرسال البيانات. يرجى المحاولة لاحقاً."
+              : "An error occurred while submitting. Please try again."),
         );
       }
 
-      setStatus({ loading: false, success: true, error: null });
+      // ۳. ثبت با موفقیت (رزرو قطعی یا تایید ورود به لیست انتظار)
+      setStatus({
+        loading: false,
+        success: true,
+        isWaitlist: result.status === "WAITLIST_CONFIRMED",
+        error: null,
+      });
+
+      setWaitlistPrompt(null);
       setFormData({
         fullName: "",
         countryCode: clubData.countryPhoneCodes?.[0]?.dialCode || "+971",
@@ -125,8 +163,18 @@ export default function Footer({
         onClearBooking("class");
       }
     } catch (err) {
-      setStatus({ loading: false, success: false, error: err.message });
+      setStatus({
+        loading: false,
+        success: false,
+        isWaitlist: false,
+        error: err.message,
+      });
     }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    executeSubmission(false);
   };
 
   return (
@@ -154,7 +202,7 @@ export default function Footer({
               </h2>
               <p className="mt-3 text-neutral-400 text-xs sm:text-sm leading-relaxed">
                 {isAr
-                  ? "سجل بياناتك وسيصلك إشعار فوري وتواصل مباشر من إدارة الاشتراکات لتأكيد الموعد واستلام بطاقتك."
+                  ? "سجل بياناتك وسيصلك إشعار فوري وتواصل مباشر من إدارة الاشتراكات لتأكيد الموعد واستلام بطاقتك."
                   : "Fill in your details to secure your spot. Our concierge team will reach out directly on WhatsApp to finalize your onboarding."}
               </p>
             </div>
@@ -264,19 +312,37 @@ export default function Footer({
               </div>
             )}
 
-            {/* بدنه فرم */}
+            {/* بخش وضعیت تایید فرم یا نمایش فیلدها */}
             {status.success ? (
-              <div className="p-8 rounded-2xl bg-emerald-950/40 border border-emerald-800 text-center space-y-3">
-                <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto animate-bounce" />
+              <div
+                className={`p-8 rounded-2xl border text-center space-y-3 ${
+                  status.isWaitlist
+                    ? "bg-amber-950/40 border-amber-800"
+                    : "bg-emerald-950/40 border-emerald-800"
+                }`}
+              >
+                <CheckCircle2
+                  className={`w-12 h-12 mx-auto animate-bounce ${
+                    status.isWaitlist ? "text-amber-400" : "text-emerald-400"
+                  }`}
+                />
                 <h3 className="text-lg font-bold text-white">
-                  {isAr
-                    ? "تم تأكيد طلب الحجز المبدئي بنجاح!"
-                    : "Reservation Request Received Successfully!"}
+                  {status.isWaitlist
+                    ? isAr
+                      ? "تم تسجيلك في قائمة الانتظار بنجاح! ⏳"
+                      : "Added to Priority Waitlist Successfully!"
+                    : isAr
+                      ? "تم تأكيد طلب الحجز المبدئي بنجاح!"
+                      : "Reservation Request Received Successfully!"}
                 </h3>
                 <p className="text-xs text-neutral-300 max-w-md mx-auto leading-relaxed">
-                  {isAr
-                    ? "شكراً لاختيارك. تم إرسال تفاصيل اختياراتك مباشرة إلى الإدارة، وسيتواصل معك الموظف المختص عبر واتساب لتفعيل الاشتراك."
-                    : "Thank you for registering. Your booking details have been submitted. Our concierge team will reach out via WhatsApp immediately."}
+                  {status.isWaitlist
+                    ? isAr
+                      ? "تم حفظ بياناتك في قائمة الانتظار لهذه الحصة. سيتم إشعارك فوراً عبر واتساب بمجرد توفر أي مقعد شاغر."
+                      : "You are placed on the priority waitlist. We will notify you directly via WhatsApp as soon as an opening becomes available."
+                    : isAr
+                      ? "شكراً لاختيارك. تم إرسال تفاصيل اختياراتك مباشرة إلى الإدارة، وسيتواصل معك الموظف المختص عبر واتساب لتفعيل الاشتراك."
+                      : "Thank you for registering. Your booking details have been submitted. Our concierge team will reach out via WhatsApp immediately."}
                 </p>
               </div>
             ) : (
@@ -285,6 +351,38 @@ export default function Footer({
                   <div className="p-3.5 rounded-xl bg-red-950/50 border border-red-800 text-red-300 text-xs flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 shrink-0" />
                     <span>{status.error}</span>
+                  </div>
+                )}
+
+                {/* بنر تعاملی لیست انتظار هنگام پر بودن ظرفیت کلاس */}
+                {waitlistPrompt && (
+                  <div className="p-4 rounded-2xl bg-amber-950/50 border border-amber-500/50 space-y-3">
+                    <div className="flex items-start gap-2.5 text-amber-300 text-xs leading-relaxed">
+                      <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-400" />
+                      <span>{waitlistPrompt.message}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        disabled={status.loading}
+                        onClick={() => executeSubmission(true)}
+                        className="flex-1 py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-dark-950 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-lg shadow-amber-500/20"
+                      >
+                        <UserPlus className="w-3.5 h-3.5" />
+                        <span>
+                          {isAr
+                            ? "نعم، سجلني في قائمة الانتظار"
+                            : "Yes, Join Waitlist"}
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setWaitlistPrompt(null)}
+                        className="px-4 py-2.5 rounded-xl bg-dark-800 hover:bg-dark-700 text-neutral-300 text-xs font-semibold transition cursor-pointer"
+                      >
+                        {isAr ? "إلغاء" : "Cancel"}
+                      </button>
+                    </div>
                   </div>
                 )}
 
@@ -358,7 +456,7 @@ export default function Footer({
                   </div>
                 </div>
 
-                {/* ردیف دوم: شماره تماس و دراپ‌داون انتخاب شعبه */}
+                {/* ردیف دوم: شماره تماس و انتخاب شعبه */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs text-neutral-300 font-medium mb-1.5">
@@ -436,25 +534,27 @@ export default function Footer({
                   </div>
                 </div>
 
-                {/* دکمه ارسال با برچسب تبدیل‌کننده */}
-                <button
-                  type="submit"
-                  disabled={status.loading}
-                  className="w-full mt-4 flex items-center justify-center gap-2 py-4 rounded-xl text-sm font-bold text-dark-950 bg-gradient-to-r from-gold-400 via-gold-500 to-gold-600 hover:brightness-110 active:scale-98 transition-all duration-200 shadow-xl shadow-gold-500/20 cursor-pointer disabled:opacity-50"
-                >
-                  {status.loading ? (
-                    <span className="inline-block w-5 h-5 border-2 border-dark-950 border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      <span>
-                        {isAr
-                          ? "طلب اشتراك وتأكيد الحجز المبدئي"
-                          : "Request Membership & Reserve Spot"}
-                      </span>
-                      <Send className="w-4 h-4 rtl:rotate-180 ltr:rotate-0" />
-                    </>
-                  )}
-                </button>
+                {/* دکمه ارسال (فقط وقتی نمایش داده می‌شود که بنر لیست انتظار باز نباشد) */}
+                {!waitlistPrompt && (
+                  <button
+                    type="submit"
+                    disabled={status.loading}
+                    className="w-full mt-4 flex items-center justify-center gap-2 py-4 rounded-xl text-sm font-bold text-dark-950 bg-gradient-to-r from-gold-400 via-gold-500 to-gold-600 hover:brightness-110 active:scale-98 transition-all duration-200 shadow-xl shadow-gold-500/20 cursor-pointer disabled:opacity-50"
+                  >
+                    {status.loading ? (
+                      <span className="inline-block w-5 h-5 border-2 border-dark-950 border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <span>
+                          {isAr
+                            ? "طلب اشتراك وتأكيد الحجز المبدئي"
+                            : "Request Membership & Reserve Spot"}
+                        </span>
+                        <Send className="w-4 h-4 rtl:rotate-180 ltr:rotate-0" />
+                      </>
+                    )}
+                  </button>
+                )}
 
                 <p className="text-center text-[11px] text-neutral-400 flex items-center justify-center gap-1.5 pt-2">
                   <ShieldCheck className="w-3.5 h-3.5 text-gold-400" />
@@ -470,7 +570,7 @@ export default function Footer({
         </div>
       </section>
 
-      {/* پایین فوتر */}
+      {/* بخش پایینی فوتر */}
       <div className="border-t border-neutral-800/80 py-16 text-neutral-400 text-xs relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">

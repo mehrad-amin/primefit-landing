@@ -2,18 +2,13 @@ import { NextResponse } from "next/server";
 import { generateLeadEmailHtml } from "@/src/lib/emailTemplate.js";
 import { getLocalClubTime } from "@/src/lib/dateUtils.js";
 
-// استخراج ایمن متغیرها چه در لوکال/ورسل و چه در ورکر کلودفلر
 async function resolveEnvironmentVariables() {
   let cfEnv = {};
   try {
     const { getCloudflareContext } = await import("@opennextjs/cloudflare");
     const ctx = await getCloudflareContext({ async: true });
-    if (ctx && ctx.env) {
-      cfEnv = ctx.env;
-    }
-  } catch (e) {
-    // در محیط غیر از کلودفلر نادیده گرفته می‌شود
-  }
+    if (ctx && ctx.env) cfEnv = ctx.env;
+  } catch (e) {}
 
   return {
     RESEND_API_KEY: cfEnv.RESEND_API_KEY || process.env.RESEND_API_KEY || "",
@@ -22,7 +17,6 @@ async function resolveEnvironmentVariables() {
       cfEnv.GOOGLE_SHEET_WEBHOOK_URL ||
       process.env.GOOGLE_SHEET_WEBHOOK_URL ||
       "",
-    // متغیرهای اختصاصی CallMeBot برای واتس‌اپ منشی
     CALLMEBOT_PHONE: cfEnv.CALLMEBOT_PHONE || process.env.CALLMEBOT_PHONE || "",
     CALLMEBOT_API_KEY:
       cfEnv.CALLMEBOT_API_KEY || process.env.CALLMEBOT_API_KEY || "",
@@ -40,11 +34,13 @@ export async function POST(request) {
       selectedBranch,
       lang = "ar",
       bookings = {},
+      joinWaitlist = false,
     } = body;
 
     if (!fullName || !phone) {
       return NextResponse.json(
         {
+          success: false,
           error:
             lang === "ar"
               ? "الاسم ورقم الهاتف مطلوبان."
@@ -62,11 +58,10 @@ export async function POST(request) {
 
     const defaultGreeting =
       lang === "ar"
-        ? `مرحباً ${fullName}، معك إدارة النادي بخصوص تصريحك اليومي المجاني.`
-        : `Hello ${fullName}, this is the club concierge regarding your complimentary day pass.`;
+        ? `مرحباً ${fullName}، معك إدارة النادي بخصوص تصريحك التدريبي.`
+        : `Hello ${fullName}, this is the club concierge regarding your training pass.`;
 
     const oneClickWaLink = `https://wa.me/${fullInternationalPhone}?text=${encodeURIComponent(defaultGreeting)}`;
-
     const { formattedDateTime, timeZone } = getLocalClubTime(new Date());
 
     const selectedSummary =
@@ -83,15 +78,15 @@ export async function POST(request) {
         .join(" | ") ||
       (lang === "ar" ? "تصريح تجريبي عام" : "General Day Pass");
 
-    // خواندن مقادیر با تابع هوشمند دوطرفه
     const env = await resolveEnvironmentVariables();
+    let sheetResult = { success: true, status: "CONFIRMED" };
 
-    // ۱. ارسال به گوگل شیت
+    // ۱. ارسال به گوگل شیت و بررسی ظرفیت
     if (env.GOOGLE_SHEET_WEBHOOK_URL) {
       try {
-        await fetch(env.GOOGLE_SHEET_WEBHOOK_URL, {
+        const sheetRes = await fetch(env.GOOGLE_SHEET_WEBHOOK_URL, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({
             timestamp: `${formattedDateTime} (${timeZone})`,
             name: fullName,
@@ -99,118 +94,101 @@ export async function POST(request) {
             goal: goal || "-",
             branch: selectedBranch || "-",
             reservations: selectedSummary,
+            classSession: bookings?.classSession || null,
+            classId: bookings?.classId || null,
+            joinWaitlist: Boolean(joinWaitlist),
             whatsappLink: oneClickWaLink,
             language: lang,
           }),
         });
+
+        sheetResult = await sheetRes.json();
+
+        // اگر کلاس پر بود، فوراً پاسخ را برگردان تا به کاربر پیشنهاد لیست انتظار داده شود
+        if (sheetResult.status === "CLASS_FULL") {
+          return NextResponse.json(sheetResult, { status: 200 });
+        }
       } catch (err) {
         console.error("Cloudflare Sheet Sync Error:", err);
       }
     }
 
-    // ۲. ارسال مستقیم از طریق Resend HTTP API
-    let emailStatus = "not_attempted";
-    let resendDebug = null;
+    const isWaitlist = sheetResult.status === "WAITLIST_CONFIRMED";
 
+    // ۲. ارسال ایمیل از طریق Resend
     if (env.RESEND_API_KEY && env.GYM_ADMIN_EMAIL) {
       const emailHtml = generateLeadEmailHtml({
         fullName,
         fullInternationalPhone,
         goal,
         selectedBranch,
-        selectedSummary,
+        selectedSummary: `${selectedSummary} ${isWaitlist ? " [قائمة انتظار ⏳]" : ""}`,
         oneClickWaLink,
         formattedDateTime: `${formattedDateTime} (${timeZone})`,
         lang,
       });
 
-      const emailSubject =
-        lang === "ar"
-          ? `🔥 مشترك جديد: ${fullName} (${selectedSummary})`
-          : `🔥 New Lead: ${fullName} (${selectedSummary})`;
+      const emailSubject = isWaitlist
+        ? `⏳ قائمة انتظار جديدة: ${fullName} (${bookings?.classSession || selectedSummary})`
+        : `🔥 مشترك جديد: ${fullName} (${selectedSummary})`;
 
-      try {
-        const resendResponse = await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${env.RESEND_API_KEY.trim()}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            from: "onboarding@resend.dev",
-            to: [env.GYM_ADMIN_EMAIL.trim()],
-            subject: emailSubject,
-            html: emailHtml,
-          }),
-        });
-
-        resendDebug = await resendResponse.json();
-        emailStatus = resendResponse.ok ? "sent" : "failed";
-      } catch (err) {
-        console.error("Cloudflare Resend Dispatch Error:", err);
-        emailStatus = "network_error";
-      }
-    } else {
-      emailStatus = "missing_env_credentials";
-    }
-
-    // ۳. ارسال آنی نوتیفیکیشن به واتس‌اپ منشی با CallMeBot
-    let whatsappAlertStatus = "not_configured";
-
-    if (env.CALLMEBOT_PHONE && env.CALLMEBOT_API_KEY) {
-      try {
-        // تمیزکاری شماره منشی (باید با علامت مثبت یا فرمت استاندارد بین‌المللی باشد)
-        // دریافت شماره منشی و حذف علامت + در صورت وجود
-        const recipientPhone = env.CALLMEBOT_PHONE.replace("+", "").trim();
-
-        const alertMessage =
-          `🚨 *حجز جديد في النادي!* 🏋️‍♂️\n\n` +
-          `👤 *الاسم:* ${fullName}\n` +
-          `📱 *الهاتف:* +${fullInternationalPhone}\n` +
-          `🎯 *الهدف:* ${goal || "-"}\n` +
-          `📍 *الفرع:* ${selectedBranch || "-"}\n` +
-          `📋 *التفاصيل:* ${selectedSummary}\n` +
-          `🕒 *الوقت:* ${formattedDateTime}\n\n` +
-          `💬 *تواصل مع العميل بنقرة واحدة:*\n${oneClickWaLink}`;
-
-        const callMeBotUrl = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(
-          recipientPhone,
-        )}&text=${encodeURIComponent(alertMessage)}&apikey=${encodeURIComponent(
-          env.CALLMEBOT_API_KEY.trim(),
-        )}`;
-
-        const botRes = await fetch(callMeBotUrl);
-        whatsappAlertStatus = botRes.ok ? "sent" : `failed_${botRes.status}`;
-      } catch (waErr) {
-        console.error("CallMeBot WhatsApp Dispatch Error:", waErr);
-        whatsappAlertStatus = "network_error";
-      }
-    }
-
-    return NextResponse.json(
-      {
-        success: true,
-        emailStatus,
-        whatsappAlertStatus,
-        debug: {
-          hasApiKey: Boolean(env.RESEND_API_KEY),
-          adminEmail: env.GYM_ADMIN_EMAIL || "NOT_SET",
-          resendOutcome: resendDebug,
-          hasWhatsAppAlert: Boolean(
-            env.CALLMEBOT_PHONE && env.CALLMEBOT_API_KEY,
-          ),
+      fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${env.RESEND_API_KEY.trim()}`,
+          "Content-Type": "application/json",
         },
-        message:
-          lang === "ar"
-            ? "تم استلام بياناتك بنجاح."
-            : "Lead received successfully.",
-      },
-      { status: 200 },
-    );
+        body: JSON.stringify({
+          from: "onboarding@resend.dev",
+          to: [env.GYM_ADMIN_EMAIL.trim()],
+          subject: emailSubject,
+          html: emailHtml,
+        }),
+      }).catch((e) => console.error("Resend Error:", e));
+    }
+
+    // ۳. ارسال پیام واتس‌اپ منشی با CallMeBot
+    if (env.CALLMEBOT_PHONE && env.CALLMEBOT_API_KEY) {
+      const recipientPhone = env.CALLMEBOT_PHONE.replace("+", "").trim();
+      const alertHeader = isWaitlist
+        ? `⏳ *طلب تسجيل في قائمة الانتظار!*`
+        : `🚨 *حجز جديد في النادي!* 🏋️‍♂️`;
+
+      const alertMessage =
+        `${alertHeader}\n\n` +
+        `👤 *الاسم:* ${fullName}\n` +
+        `📱 *الهاتف:* +${fullInternationalPhone}\n` +
+        `🎯 *الهدف:* ${goal || "-"}\n` +
+        `📍 *الفرع:* ${selectedBranch || "-"}\n` +
+        `📋 *التفاصيل:* ${selectedSummary}\n` +
+        `📊 *الحالة:* ${isWaitlist ? "قائمة انتظار (الحصة ممتلئة)" : "حجز مؤكد"}\n` +
+        `🕒 *الوقت:* ${formattedDateTime}\n\n` +
+        `💬 *تواصل مع العميل بنقرة واحدة:*\n${oneClickWaLink}`;
+
+      const callMeBotUrl = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(
+        recipientPhone,
+      )}&text=${encodeURIComponent(alertMessage)}&apikey=${encodeURIComponent(
+        env.CALLMEBOT_API_KEY.trim(),
+      )}`;
+
+      fetch(callMeBotUrl).catch((e) => console.error("CallMeBot Error:", e));
+    }
+
+    return NextResponse.json({
+      success: true,
+      status: sheetResult.status || "CONFIRMED",
+      message: isWaitlist
+        ? lang === "ar"
+          ? "تمت إضافتك إلى قائمة الانتظار بنجاح."
+          : "Added to waitlist successfully."
+        : lang === "ar"
+          ? "تم استلام بياناتك وتأكيد الحجز بنجاح."
+          : "Booking confirmed successfully.",
+    });
   } catch (error) {
     console.error("Lead route global error:", error);
     return NextResponse.json(
-      { error: "Internal Server Error", details: error.message },
+      { success: false, error: "Internal Server Error" },
       { status: 500 },
     );
   }

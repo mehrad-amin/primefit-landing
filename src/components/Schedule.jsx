@@ -78,8 +78,10 @@ export default function Schedule({ lang = "ar", onSelectClass }) {
 
     if (typeof onSelectClass === "function") {
       onSelectClass({
-        id: item.id,
+        id: item.id || item["(id)"],
         title: isAr ? item.titleAr : item.titleEn,
+        titleAr: item.titleAr,
+        titleEn: item.titleEn,
         trainer: isAr
           ? item.trainerAr || item.trainer || item.trainerEn
           : item.trainerEn || item.trainer || item.trainerAr,
@@ -87,7 +89,6 @@ export default function Schedule({ lang = "ar", onSelectClass }) {
       });
     }
   };
-
   return (
     <section
       id="schedule"
