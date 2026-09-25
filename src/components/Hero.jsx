@@ -30,7 +30,7 @@ export default function Hero({ lang = "ar" }) {
           poster="/hero-poster-mobile.png"
           className="md:hidden absolute inset-0 w-full h-full object-cover object-center opacity-85 contrast-105"
         >
-          <source src="/hero-video-1.mp4" type="video/mp4" />
+          <source src="/hero-video-2.mp4" type="video/mp4" />
         </video>
 
         {/* ۲. نسخه دسکتاپ */}
