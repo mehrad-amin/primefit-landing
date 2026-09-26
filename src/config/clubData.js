@@ -708,8 +708,7 @@ export const clubData = {
           "CSCS Specialist",
           "REPs Level 4",
         ],
-        image:
-          "https://images.unsplash.com/photo-1567013127542-490d757e51fc?q=80&w=800&auto=format&fit=crop",
+        image: "/images/coach-2.webp",
       },
       {
         id: 2,
@@ -726,8 +725,7 @@ export const clubData = {
           "Comprehensive Pilates Certified",
           "Pre/Post Natal Fitness",
         ],
-        image:
-          "https://images.unsplash.com/photo-1594381898411-846e7d193883?q=80&w=800&auto=format&fit=crop",
+        image: "/images/coach-lady.jpg",
       },
       {
         id: 3,
@@ -744,8 +742,7 @@ export const clubData = {
           "Olympic Weightlifting USAW",
           "Precision Nutrition Level 1",
         ],
-        image:
-          "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=800&auto=format&fit=crop",
+        image: "/images/test.jpg",
       },
     ],
   },
