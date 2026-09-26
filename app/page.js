@@ -37,34 +37,90 @@ export default function HomePage() {
     document.documentElement.lang = lang;
   }, [lang]);
 
-  // اسکرول نرم به فرم تنها هنگام کلیک کاربر روی دکمه نوار شناور
   const handleProceedToForm = () => {
     const el = document.getElementById("lead-capture");
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
-  // بررسی وجود هرگونه رزرو فعال
+
   const hasActiveBooking = Boolean(
     selectedBookings.plan ||
     selectedBookings.trainer ||
     selectedBookings.classItem,
   );
-  // انتخاب‌ها بدون پرتاب ناگهانی کاربر ذخیره می‌شوند
+
   const handleSelectPlan = (plan) => {
     setSelectedBookings((prev) => ({ ...prev, plan }));
   };
 
+  // انتخاب مربی به صورت دستی
   const handleSelectTrainer = (trainer) => {
     setSelectedBookings((prev) => ({ ...prev, trainer }));
   };
 
+  // انتخاب کلاس + همگام‌سازی خودکار مربی مربوط به همان کلاس
   const handleSelectClass = (classItem) => {
-    setSelectedBookings((prev) => ({ ...prev, classItem }));
+    if (!classItem) {
+      setSelectedBookings((prev) => ({ ...prev, classItem: null }));
+      return;
+    }
+
+    // استخراج نام مربی کلاس بر اساس کلیدهای موجود
+    const trainerName =
+      lang === "ar"
+        ? classItem.trainerAr || classItem.trainer || classItem.trainerEn
+        : classItem.trainerEn || classItem.trainer || classItem.trainerAr;
+
+    // جستجوی مربی متناظر از دیتابیس کلاب جهت ست کردن دیتا با ساختار استاندارد
+    const matchedTrainer = clubData.trainers?.items?.find((t) => {
+      const matchNameAr =
+        t.nameAr &&
+        classItem.trainerAr &&
+        t.nameAr.includes(classItem.trainerAr);
+      const matchNameEn =
+        t.nameEn &&
+        classItem.trainerEn &&
+        t.nameEn.toLowerCase().includes(classItem.trainerEn.toLowerCase());
+      const matchGeneral =
+        t.name && (t.name === classItem.trainer || t.name === trainerName);
+      return matchNameAr || matchNameEn || matchGeneral;
+    });
+
+    const syncedTrainer = matchedTrainer
+      ? {
+          id: matchedTrainer.id,
+          title:
+            lang === "ar"
+              ? matchedTrainer.nameAr || matchedTrainer.name
+              : matchedTrainer.nameEn || matchedTrainer.name,
+          role:
+            lang === "ar"
+              ? matchedTrainer.roleAr || matchedTrainer.role
+              : matchedTrainer.roleEn || matchedTrainer.role,
+        }
+      : {
+          id: `class-trainer-${classItem.id}`,
+          title:
+            trainerName || (lang === "ar" ? "مدرب الحصة" : "Class Trainer"),
+          role: lang === "ar" ? "مدرب الحصة المحددة" : "Selected Class Trainer",
+        };
+
+    setSelectedBookings((prev) => ({
+      ...prev,
+      classItem,
+      trainer: syncedTrainer,
+    }));
   };
 
   const handleClearBooking = (type) => {
-    setSelectedBookings((prev) => ({ ...prev, [type]: null }));
+    setSelectedBookings((prev) => {
+      // اگر کلاس لغو شد، مربی متصل به آن را نیز پاک می‌کنیم تا کاربر آزادانه انتخاب کند
+      if (type === "classItem") {
+        return { ...prev, classItem: null, trainer: null };
+      }
+      return { ...prev, [type]: null };
+    });
   };
 
   return (
@@ -81,15 +137,25 @@ export default function HomePage() {
       <TransformationsSlider lang={lang} />
       <FitnessCalculator lang={lang} />
 
-      {/* اتصال کلاس‌ها */}
-      <Schedule lang={lang} onSelectClass={handleSelectClass} />
+      {/* اتصال کلاس‌ها همراه با ارسال کلاس انتخاب‌شده جهت هایلایت و بررسی */}
+      <Schedule
+        lang={lang}
+        selectedClass={selectedBookings.classItem}
+        onSelectClass={handleSelectClass}
+        onClearClass={() => handleClearBooking("classItem")}
+      />
 
-      {/* اتصال مربیان */}
-      <Trainers lang={lang} onSelectTrainer={handleSelectTrainer} />
+      {/* اتصال مربیان با پشتیبانی از کادر زرد، قفل بودن و دکمه لغو */}
+      <Trainers
+        lang={lang}
+        selectedTrainer={selectedBookings.trainer}
+        selectedClass={selectedBookings.classItem}
+        onSelectTrainer={handleSelectTrainer}
+        onClearTrainer={() => handleClearBooking("classItem")}
+      />
 
       <Testimonials lang={lang} />
 
-      {/* اتصال پلن‌ها */}
       <Pricing
         lang={lang}
         currentCurrency={currency}
@@ -98,7 +164,6 @@ export default function HomePage() {
 
       <Faq lang={lang} />
 
-      {/* فرم دریافت لید با بج‌های متصل */}
       <Footer
         lang={lang}
         selectedBookings={selectedBookings}
@@ -112,7 +177,6 @@ export default function HomePage() {
         onProceedToForm={handleProceedToForm}
       />
 
-      {/* دکمه واتساپ هوشمند */}
       <FloatingWhatsApp lang={lang} hasActiveBar={hasActiveBooking} />
     </main>
   );

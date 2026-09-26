@@ -1,22 +1,23 @@
 "use client";
 
 import { clubData } from "../config/clubData.js";
-import { Award, CheckCircle, MessageSquare } from "lucide-react";
+import { Award, CheckCircle, MessageSquare, X, Lock } from "lucide-react";
 
-export default function Trainers({ lang = "ar", onSelectTrainer }) {
+export default function Trainers({
+  lang = "ar",
+  selectedTrainer = null,
+  selectedClass = null,
+  onSelectTrainer,
+  onClearTrainer,
+}) {
   if (!clubData.features.showTrainers) return null;
 
   const isAr = lang === "ar";
   const { trainers } = clubData;
 
   const handleTrainerClick = (trainer) => {
-    const trainerName = isAr
-      ? trainer.nameAr || trainer.name || trainer.nameEn
-      : trainer.nameEn || trainer.name || trainer.nameAr;
-
-    const trainerRole = isAr
-      ? trainer.roleAr || trainer.role || trainer.roleEn
-      : trainer.roleEn || trainer.role || trainer.roleAr;
+    // اگر کلاسی از قبل ثبت شده باشد، اجازه انتخاب مربی متفاوت داده نمی‌شود
+    if (selectedClass) return;
 
     if (onSelectTrainer) {
       onSelectTrainer({
@@ -66,11 +67,62 @@ export default function Trainers({ lang = "ar", onSelectTrainer }) {
               ? trainer.specialtyAr || trainer.specialty || trainer.specialtyEn
               : trainer.specialtyEn || trainer.specialty || trainer.specialtyAr;
 
+            // اعتبارسنجی انطباق با مربی انتخاب‌شده
+            const isSelected = Boolean(
+              selectedTrainer &&
+              (selectedTrainer.id === trainer.id ||
+                selectedTrainer.title === displayName ||
+                (selectedClass &&
+                  (trainer.nameAr?.includes(selectedClass.trainerAr || "") ||
+                    trainer.nameEn?.toLowerCase() ===
+                      selectedClass.trainerEn?.toLowerCase()))),
+            );
+
+            // آیا به دلیل انتخاب یک کلاس خاص قفل شده است؟
+            const isLockedByOther = Boolean(selectedClass && !isSelected);
+
             return (
               <div
                 key={trainer.id}
-                className="bg-dark-900 border border-neutral-800/90 rounded-2xl overflow-hidden hover:border-gold-500/40 transition-all duration-300 flex flex-col justify-between group shadow-xl"
+                className={`relative rounded-2xl overflow-hidden flex flex-col justify-between transition-all duration-300 shadow-xl ${
+                  isSelected
+                    ? "bg-dark-900 border-2 border-gold-400 ring-4 ring-gold-400/20 scale-[1.02] shadow-gold-500/10 z-10"
+                    : isLockedByOther
+                      ? "bg-dark-900/60 border border-neutral-800/50 opacity-45 grayscale-[30%]"
+                      : "bg-dark-900 border border-neutral-800/90 hover:border-gold-500/40"
+                }`}
               >
+                {/* بج زرد و طلایی اختصاصی بالای کارت انتخاب شده */}
+                {isSelected && (
+                  <div className="absolute top-3 end-3 z-20 flex items-center gap-1.5 px-3 py-1 rounded-full bg-gold-400 text-dark-950 text-xs font-black shadow-lg">
+                    <span>✓</span>
+                    <span>
+                      {selectedClass
+                        ? isAr
+                          ? "محدد تلقائياً مع حصتك"
+                          : "Auto-synced with class"
+                        : isAr
+                          ? "مدربك المختار"
+                          : "Selected Trainer"}
+                    </span>
+
+                    {/* دکمه لغو انتخاب */}
+                    {onClearTrainer && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onClearTrainer();
+                        }}
+                        title={isAr ? "إلغاء التحديد" : "Cancel selection"}
+                        className="ms-1 p-0.5 hover:bg-dark-950/20 rounded-full transition-colors cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                )}
+
                 <div>
                   <div className="relative h-80 w-full overflow-hidden bg-dark-800">
                     <img
@@ -88,7 +140,11 @@ export default function Trainers({ lang = "ar", onSelectTrainer }) {
 
                   <div className="p-6 space-y-4">
                     <div>
-                      <h3 className="text-xl font-black text-white group-hover:text-gold-400 transition-colors">
+                      <h3
+                        className={`text-xl font-black transition-colors ${
+                          isSelected ? "text-gold-400" : "text-white"
+                        }`}
+                      >
                         {displayName}
                       </h3>
                       <p className="text-xs text-neutral-400 mt-1">
@@ -128,15 +184,44 @@ export default function Trainers({ lang = "ar", onSelectTrainer }) {
                 <div className="p-6 pt-0">
                   <button
                     type="button"
+                    disabled={isLockedByOther}
                     onClick={() => handleTrainerClick(trainer)}
-                    className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-dark-850 hover:bg-gold-500 text-neutral-200 hover:text-dark-950 border border-neutral-700 hover:border-gold-500 text-xs font-bold transition-all duration-200 cursor-pointer"
+                    className={`w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold transition-all duration-200 ${
+                      isSelected
+                        ? "bg-gold-500 text-dark-950 shadow-md font-black cursor-default"
+                        : isLockedByOther
+                          ? "bg-dark-850 text-neutral-500 border border-neutral-800 cursor-not-allowed"
+                          : "bg-dark-850 hover:bg-gold-500 text-neutral-200 hover:text-dark-950 border border-neutral-700 hover:border-gold-500 cursor-pointer"
+                    }`}
                   >
-                    <MessageSquare className="w-4 h-4" />
-                    <span>
-                      {isAr
-                        ? trainers.bookConsultBtnAr
-                        : trainers.bookConsultBtnEn}
-                    </span>
+                    {isLockedByOther ? (
+                      <>
+                        <Lock className="w-3.5 h-3.5" />
+                        <span>
+                          {isAr
+                            ? "مخصص لحصة تدريبية أخرى"
+                            : "Locked by other class"}
+                        </span>
+                      </>
+                    ) : isSelected ? (
+                      <>
+                        <CheckCircle className="w-4 h-4 text-dark-950" />
+                        <span>
+                          {isAr
+                            ? "تم اختيار الكابتن بنجاح"
+                            : "Trainer Selected"}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <MessageSquare className="w-4 h-4" />
+                        <span>
+                          {isAr
+                            ? trainers.bookConsultBtnAr
+                            : trainers.bookConsultBtnEn}
+                        </span>
+                      </>
+                    )}
                   </button>
                 </div>
               </div>

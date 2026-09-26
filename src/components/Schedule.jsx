@@ -9,10 +9,15 @@ import {
   Flame,
   ShieldCheck,
   RefreshCw,
+  Check,
 } from "lucide-react";
 
-export default function Schedule({ lang = "ar", onSelectClass }) {
-  // ۱. تمامی هوک‌ها پیش از هرگونه شرط یا Return زودهنگام تعریف می‌شوند
+export default function Schedule({
+  lang = "ar",
+  selectedClass = null,
+  onSelectClass,
+  onClearClass,
+}) {
   const { schedule } = clubData;
   const isAr = lang === "ar";
   const showSchedule = Boolean(clubData.features?.showSchedule);
@@ -21,7 +26,6 @@ export default function Schedule({ lang = "ar", onSelectClass }) {
   const [classesList, setClassesList] = useState(schedule?.classes || []);
   const [isLoading, setIsLoading] = useState(false);
 
-  // ۲. مدیریت دریافت دیتا با useCallback برای جلوگیری از بازسازی تابع
   const fetchLiveSchedule = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -65,7 +69,6 @@ export default function Schedule({ lang = "ar", onSelectClass }) {
     };
   }, [showSchedule]);
 
-  // ۳. شرط Return زودهنگام بعد از اجرای تمام هوک‌ها
   if (!showSchedule || !schedule) return null;
 
   const filteredClasses =
@@ -76,6 +79,14 @@ export default function Schedule({ lang = "ar", onSelectClass }) {
   const handleClassClick = (item) => {
     if (item.seatsLeft <= 0) return;
 
+    // اگر همین کلاس از قبل انتخاب شده بود، با کلیک مجدد لغو شود
+    if (selectedClass && selectedClass.id === (item.id || item["(id)"])) {
+      if (typeof onClearClass === "function") {
+        onClearClass();
+      }
+      return;
+    }
+
     if (typeof onSelectClass === "function") {
       onSelectClass({
         id: item.id || item["(id)"],
@@ -85,10 +96,13 @@ export default function Schedule({ lang = "ar", onSelectClass }) {
         trainer: isAr
           ? item.trainerAr || item.trainer || item.trainerEn
           : item.trainerEn || item.trainer || item.trainerAr,
+        trainerAr: item.trainerAr || item.trainer || item.coachAr,
+        trainerEn: item.trainerEn || item.trainer || item.coachEn,
         time: isAr ? item.timeAr : item.timeEn,
       });
     }
   };
+
   return (
     <section
       id="schedule"
@@ -147,14 +161,20 @@ export default function Schedule({ lang = "ar", onSelectClass }) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredClasses.map((item) => {
             const isFull = item.seatsLeft <= 0;
+            const itemId = item.id || item["(id)"];
+            const isClassSelected = Boolean(
+              selectedClass && selectedClass.id === itemId,
+            );
 
             return (
               <div
-                key={item.id}
+                key={itemId}
                 className={`bg-dark-850/90 border rounded-2xl p-6 transition-all duration-200 flex flex-col justify-between group ${
-                  isFull
-                    ? "border-neutral-800/50 opacity-60"
-                    : "border-neutral-800 hover:border-gold-500/40"
+                  isClassSelected
+                    ? "border-gold-400 ring-2 ring-gold-400/30 bg-dark-850 shadow-lg shadow-gold-500/10"
+                    : isFull
+                      ? "border-neutral-800/50 opacity-60"
+                      : "border-neutral-800 hover:border-gold-500/40"
                 }`}
               >
                 <div>
@@ -189,7 +209,13 @@ export default function Schedule({ lang = "ar", onSelectClass }) {
                     )}
                   </div>
 
-                  <h3 className="text-lg font-black text-white group-hover:text-gold-400 transition-colors mb-3">
+                  <h3
+                    className={`text-lg font-black transition-colors mb-3 ${
+                      isClassSelected
+                        ? "text-gold-400"
+                        : "text-white group-hover:text-gold-400"
+                    }`}
+                  >
                     {isAr ? item.titleAr : item.titleEn}
                   </h3>
 
@@ -241,19 +267,34 @@ export default function Schedule({ lang = "ar", onSelectClass }) {
                   type="button"
                   disabled={isFull}
                   onClick={() => handleClassClick(item)}
-                  className={`w-full py-3 rounded-xl text-xs sm:text-sm font-bold text-center transition-all duration-200 shadow-sm ${
+                  className={`w-full py-3 rounded-xl text-xs sm:text-sm font-bold text-center transition-all duration-200 shadow-sm flex items-center justify-center gap-2 ${
                     isFull
                       ? "bg-dark-800 text-neutral-400 cursor-not-allowed border border-neutral-800"
-                      : "bg-dark-800 hover:bg-gold-500 text-neutral-200 hover:text-dark-950 border border-neutral-700 hover:border-gold-500 cursor-pointer active:scale-98"
+                      : isClassSelected
+                        ? "bg-gold-500 text-dark-950 font-black cursor-pointer shadow-md"
+                        : "bg-dark-800 hover:bg-gold-500 text-neutral-200 hover:text-dark-950 border border-neutral-700 hover:border-gold-500 cursor-pointer active:scale-98"
                   }`}
                 >
-                  {isFull
-                    ? isAr
-                      ? "عذراً، المقاعد مكتملة"
-                      : "Class Full"
-                    : isAr
-                      ? schedule.bookBtnAr
-                      : schedule.bookBtnEn}
+                  {isFull ? (
+                    isAr ? (
+                      "عذراً، المقاعد مكتملة"
+                    ) : (
+                      "Class Full"
+                    )
+                  ) : isClassSelected ? (
+                    <>
+                      <Check className="w-4 h-4 text-dark-950" />
+                      <span>
+                        {isAr
+                          ? "تم تحديد الحصة (اضغط للإلغاء)"
+                          : "Class Booked (Click to cancel)"}
+                      </span>
+                    </>
+                  ) : isAr ? (
+                    schedule.bookBtnAr
+                  ) : (
+                    schedule.bookBtnEn
+                  )}
                 </button>
               </div>
             );
