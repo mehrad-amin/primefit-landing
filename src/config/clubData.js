@@ -295,137 +295,225 @@ export const clubData = {
     snapchat: "https://snapchat.com",
     tiktok: "https://tiktok.com",
   },
-  // داده‌های تفکیک فضا و گالری تجهیزات
-  facilities: {
-    titleAr: "مرافق عالمية صُممت لأجلك",
-    titleEn: "World-Class Facilities Designed For You",
+
+  // داده‌های تور ۳۶۰ درجه و فضاهای اختصاصی باشگاه
+  tour: {
+    badgeAr: "مرافق وفضاءات النادي الفاخرة",
+    badgeEn: "Club Facilities & Exclusive Spaces",
+    titleAr: "جولة استكشافية ومساحات التدريب الخاصة",
+    titleEn: "Exclusive Spaces & Virtual Tour",
     subtitleAr:
-      "أقسام مستقلة كلياً تضمن لك أقصى درجات الخصوصية والراحة مع أرقى الأجهزة الرياضية",
+      "لاكتشاف زوايا وأجهزة كل قسم، اختر التصنيف وتصفح الصور بكل سهولة",
     subtitleEn:
-      "Fully independent training zones delivering utmost privacy and comfort with state-of-the-art equipment.",
-    badgeAr: "بيئة مصممة خصيصاً لراحتك",
-    badgeEn: "Engineered For Ultimate Comfort & Privacy",
-    ctaAr: "احجز جولتك الاستكشافية اليوم",
-    ctaEn: "Book Your Club Tour Today",
+      "Select a category and browse photos to explore each training zone and premium equipment",
+    allCategoryAr: "جميع الأقسام",
+    allCategoryEn: "All Spaces",
+    memberAccessBadgeAr: "دخول حر ومجاني لجميع المشتركين",
+    memberAccessBadgeEn: "Full Access for All Members",
+    bookSessionAr: "حجز جولة / سانس استكشافي",
+    bookSessionEn: "Book Private Session",
+
     categories: [
       {
-        id: "ladies",
-        labelAr: "قسم السيدات (خصوصية 100%)",
-        labelEn: "Ladies-Only (100% Privacy)",
-        badgeAr: "مستقل تماماً مع مدربات معتمدات",
-        badgeEn: "100% Private with Certified Female Coaches",
-        descriptionAr:
-          "صالات رياضية مجهزة بالكامل ومغلقة بحواجز ذكية ومدخل خاص يضمن الخصوصية التامة للسيدات، بإشراف نخبة من أفضل المدربات الدوليات.",
-        descriptionEn:
-          "Fully autonomous training floors with private electronic access and smart barriers, supervised exclusively by certified female trainers.",
+        id: "all",
+        labelAr: "جميع الأقسام",
+        labelEn: "All Spaces",
+        icon: "Sparkles",
+      },
+      {
+        id: "gym_floor",
+        labelAr: "الصالة الرئيسية والأجهزة",
+        labelEn: "Main Gym Floor & Rigs",
+        icon: "Dumbbell",
+      },
+      {
+        id: "lockers",
+        labelAr: "غرف التبديل ودوش VIP",
+        labelEn: "VIP Lockers & Showers",
+        icon: "KeyRound",
+      },
+      {
+        id: "recovery",
+        labelAr: "الساونا وحوض الثلج",
+        labelEn: "Sauna, Spa & Ice Bath",
+        icon: "Waves",
+      },
+      {
+        id: "cafe",
+        labelAr: "بار البروتين والكافيه",
+        labelEn: "Protein Bar & Cafe",
+        icon: "Coffee",
+      },
+      {
+        id: "studio",
+        labelAr: "استوديو البيلاتس واليوغا",
+        labelEn: "Pilates & Yoga Studio",
+        icon: "HeartPulse",
+      },
+    ],
+
+    spaces: [
+      {
+        id: "gym_floor_main",
+        categoryId: "gym_floor",
+        titleAr: "صالة الأوزان الحرة والتجهيزات المتقدمة",
+        titleEn: "Free Weights & Advanced Machinery",
+        subtitleAr: "تجهيزات إيطالية متطورة من Panatta و Technogym",
+        subtitleEn: "Pro-grade Italian equipment by Panatta & Technogym",
+        badgeAr: "بدون انتظار للأجهزة",
+        badgeEn: "Zero Wait Time",
+        photos: [
+          {
+            url: "/images/fit-room.webp",
+            captionAr: "محطات رك الأسكوات ومكابس الصدر متعددة الاستخدام",
+            captionEn: "Multi-functional power cages & heavy squat racks",
+          },
+          {
+            url: "/images/fit-room-2.webp",
+            captionAr: "تشكيلة دمبلز يوريثان متكاملة حتى 50 كجم",
+            captionEn: "Full urethane heavy dumbbell set up to 50kg",
+          },
+        ],
         featuresAr: [
-          "مدخل واستقبال خاص ومنفصل",
-          "طاقم تدريبي وإداري نسائي 100%",
-          "أحدث أجهزة بيلاتس وكارديو",
-          "غرف تبديل وخزائن VIP فاخرة",
+          "تكييف هواء مركزي مع نظام فلترة نانو متطور",
+          "أرضيات مطاطية احترافية ماصة للصدمات",
+          "مرايا بانورامية متصلة بإضاءة مدروسة",
         ],
         featuresEn: [
-          "Private & dedicated entrance",
-          "100% certified female coaching staff",
-          "State-of-the-art Pilates & cardio suites",
-          "Luxury VIP lockers & amenities",
-        ],
-        images: [
-          {
-            url: "https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=1000&auto=format&fit=crop",
-            titleAr: "صالة الكارديو النسائية",
-            titleEn: "Ladies Cardio Studio",
-          },
-          {
-            url: "https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=1000&auto=format&fit=crop",
-            titleAr: "منطقة المقاومة والأوزان الحرة",
-            titleEn: "Resistance & Free Weights",
-          },
-          {
-            url: "https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=1000&auto=format&fit=crop",
-            titleAr: "استوديو البيلاتس واليوغا",
-            titleEn: "Pilates & Yoga Sanctuary",
-          },
+          "Nano-filtration clean air conditioning",
+          "Heavy-duty shock-absorbing athletic flooring",
+          "Panoramic full-height precision mirrors",
         ],
       },
       {
-        id: "men",
-        labelAr: "قسم الرجال / الصالة العامة",
-        labelEn: "Main / Men's Training Floor",
-        badgeAr: "تجهيزات احترافية للمحترفين",
-        badgeEn: "Olympic & Pro Grade Equipment",
-        descriptionAr:
-          "مساحة واسعة تضم أحدث تجهيزات القوة البدنية ورفع الأثقال المعتمدة أولمبياً، مصممة لتحفيزك على كسر أرقامك القياسية.",
-        descriptionEn:
-          "Spacious heavy-lifting floor equipped with Olympic-certified barbells and pro machines engineered to break personal records.",
+        id: "lockers_vip",
+        categoryId: "lockers",
+        titleAr: "خزائن ذكية وغرف تبديل خاصة",
+        titleEn: "Smart Lockers & VIP Dressing Suites",
+        subtitleAr: "أعلى معايير النظافة والخصوصية والأمان للرياضي",
+        subtitleEn: "Utmost hygiene, security, and member comfort",
+        badgeAr: "أمان 100%",
+        badgeEn: "100% Secure",
+        photos: [
+          {
+            url: "/images/locker-1.webp",
+            captionAr: "خزائن إلكترونية مؤمنة بأساور RFID الذكية",
+            captionEn: "Electronic lockers with contactless RFID wristbands",
+          },
+          {
+            url: "/images/locker-2.webp",
+            captionAr: "كبائن دوش ساخن مستقلة مع تعقيم مستمر",
+            captionEn: "Private rain shower suites with ongoing sanitization",
+          },
+        ],
         featuresAr: [
-          "أجهزة Hammer Strength و Technogym",
-          "منصات أولمبية Eleiko معتمدة",
-          "منطقة تمارين وظيفية وكروس فت بمساحة 400م²",
-          "بار بروتين ومشروبات طاقة صحية",
+          "مجففات شعر احترافية ومستلزمات عناية شخصية فاخرة",
+          "دوش ماء ساخن بضغط مرتفع وتصميم فندقي",
+          "أقفال رقمية ذكية عبر السوار الإلكتروني",
         ],
         featuresEn: [
-          "Official Hammer Strength & Technogym line",
-          "Certified Eleiko Olympic platforms",
-          "400m² functional & CrossFit zone",
-          "Artisan protein shake & energy bar",
-        ],
-        images: [
-          {
-            url: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1000&auto=format&fit=crop",
-            titleAr: "منطقة الأوزان الثقيلة",
-            titleEn: "Heavy Lifting Arena",
-          },
-          {
-            url: "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=1000&auto=format&fit=crop",
-            titleAr: "منصات الرفع الأولمبي",
-            titleEn: "Olympic Platforms",
-          },
-          {
-            url: "https://images.unsplash.com/photo-1571902943202-507ec2618e8f?q=80&w=1000&auto=format&fit=crop",
-            titleAr: "المنطقة الوظيفية والكارديو",
-            titleEn: "Functional Cardio Zone",
-          },
+          "High-power dryers & luxury grooming essentials",
+          "High-pressure individual rain showers",
+          "Smart contactless digital locker locks",
         ],
       },
       {
-        id: "vip",
-        labelAr: "صالات الـ VIP والتدريب الفردي",
-        labelEn: "VIP & Private Suites",
-        badgeAr: "خدمة شخصية متكاملة",
-        badgeEn: "Bespoke 1-on-1 Experience",
-        descriptionAr:
-          "أجنحة تدريب خاصة مجهزة لك وحدك مع مدربك الشخصي، لضمان أعلى مستويات التركيز والرفاهية والهدوء.",
-        descriptionEn:
-          "Acoustically isolated private training suites reserved exclusively for you and your master coach.",
+        id: "recovery_spa",
+        categoryId: "recovery",
+        titleAr: "المنطقة المائية، الساونا والاستشفاء العضلي",
+        titleEn: "Thermal Suite, Sauna & Muscle Recovery",
+        subtitleAr: "تفريغ حمض اللاكتيك واسترخاء عميق بعد الحصص الشاقة",
+        subtitleEn: "Flush lactic acid and decompress after peak workouts",
+        badgeAr: "استشفاء احترافي",
+        badgeEn: "Pro Recovery",
+        photos: [
+          {
+            url: "/images/suna-1.webp",
+            captionAr: "ساونا فنلندية جافة بخشب الترمو الطبيعي وصخور بركانية",
+            captionEn:
+              "Authentic Finnish thermo-wood sauna with volcanic rocks",
+          },
+          {
+            url: "/images/suna-2.webp",
+            captionAr: "حوض الغمر البارد (Cold Plunge) لتثبيط الالتهابات",
+            captionEn:
+              "Sub-zero cold plunge bath for instant inflammation relief",
+          },
+        ],
         featuresAr: [
-          "جناح تدريب خاص معزول صوتياً",
-          "تقييم يومي عبر مسح InBody متقدم",
-          "خزائن خاصة مع مستلزمات عناية شخصية فاخرة",
-          "أولوية حجز الجلسات وحصص الاستشفاء",
+          "تحكم حراري دقيق بدرجة برودة حوض الثلج (3-6 درجات)",
+          "علاج عطري (Aromatherapy) بمستخلصات عشبية بالساونا",
+          "تقنية تعقيم وتنقية مياه بالأوزون على مدار الساعة",
         ],
         featuresEn: [
-          "Acoustically isolated private gym suite",
-          "Complimentary daily advanced InBody scan",
-          "Dedicated personalized luxury locker",
-          "Priority booking for recovery therapies",
+          "Precise cold plunge temperature regulation (3-6°C)",
+          "Infused herbal aromatherapy in Finnish sauna",
+          "24/7 continuous ozone water sterilization",
         ],
-        images: [
+      },
+      {
+        id: "cafe_bar",
+        categoryId: "cafe",
+        titleAr: "بار البروتين، السموثي والمكملات الغذائية",
+        titleEn: "Dedicated Protein, Smoothie & Supplement Bar",
+        subtitleAr: "تغذية فورية وطاقة نقية قبل التدريب وبعده",
+        subtitleEn: "Instant pre-workout ignition & clean post-workout fueling",
+        badgeAr: "طازج وصحي",
+        badgeEn: "Fresh & Organic",
+        photos: [
           {
-            url: "https://images.unsplash.com/photo-1574680096145-d05b474e2155?q=80&w=1000&auto=format&fit=crop",
-            titleAr: "جناح التدريب الخاص",
-            titleEn: "Private Training Suite",
+            url: "/images/bar-1.webp",
+            captionAr: "شيك بروتين معزول (Whey Isolate) وسموثي خالي من السكر",
+            captionEn: "Whey isolate shakes & zero-sugar superfood smoothies",
           },
           {
-            url: "https://images.unsplash.com/photo-1593079831268-3381b0db4a77?q=80&w=1000&auto=format&fit=crop",
-            titleAr: "غرفة التقييم والتخطيط البدني",
-            titleEn: "Assessment & Planning Lab",
+            url: "/images/bar-2.webp",
+            captionAr: "قهوة إسبريسو 100% أرابيكا مختصة لطاقة ما قبل التمرين",
+            captionEn: "Specialty 100% Arabica espresso for explosive energy",
+          },
+        ],
+        featuresAr: [
+          "إعداد مخفوقات البروتين بمكملاتك المفضلة",
+          "مكائن قهوة إيطالية احترافية",
+          "وجبات خفيفة صحية وبارات بروتين منخفضة السعرات",
+        ],
+        featuresEn: [
+          "Custom protein shakes tailored to your macronutrients",
+          "Artisan Italian espresso & pre-workout brews",
+          "Clean diet snacks & low-calorie protein bars",
+        ],
+      },
+      {
+        id: "studio_classes",
+        categoryId: "studio",
+        titleAr: "استوديو البيلاتس، الـ TRX والتمارين الوظيفية",
+        titleEn: "Pilates Reformer, TRX & Dynamic Flow Studio",
+        subtitleAr: "بيئة هادئة بإضاءة محيطية مريحة وأرضيات مطاطية خاصة",
+        subtitleEn:
+          "Isolated sanctuary with ambient lighting & low-impact flooring",
+        badgeAr: "متاح لجميع الفئات",
+        badgeEn: "Open to All",
+        photos: [
+          {
+            url: "/images/pilates-2.webp",
+            captionAr: "أجهزة بيلاتس ريفورمر (Pilates Reformer) الأصلية",
+            captionEn: "Commercial-grade Pilates Reformer machines",
           },
           {
-            url: "https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=1000&auto=format&fit=crop",
-            titleAr: "لاونج الاستراحة الخاص",
-            titleEn: "Private Member Lounge",
+            url: "/images/pilates-1.webp",
+            captionAr: "أجواء مهدئة مع أشرطة TRX وحصائر يوغا طبية",
+            captionEn: "Tranquil space with premium yoga mats & TRX straps",
           },
+        ],
+        featuresAr: [
+          "نظام صوتي محيطي عالي النقاوة للحصص الهادئة والحماسية",
+          "أسرّة ريفورمر جديدة ومطابقة للمواصفات الدولية",
+          "إضاءة سمارت تفاعلية تتكيف مع أجواء الحصة التدريبية",
+        ],
+        featuresEn: [
+          "Immersive acoustic sound system tailored to class mood",
+          "Brand-new world-standard reformer carriages",
+          "Custom ambient mood lighting for focus & tranquility",
         ],
       },
     ],
@@ -491,6 +579,27 @@ export const clubData = {
     items: [
       {
         id: 1,
+        nameAr: "طارق الشمري",
+        nameEn: "Tariq Al-Shammari",
+        trainerAr: "كوتش خالد",
+        trainerEn: "Coach Khalid",
+        goalAr: "خسارة وزن كبرى واستعادة الصحة العامة",
+        goalEn: "Major Weight Loss & Metabolic Reset",
+        quoteAr:
+          "خسرت أكثر من 20 كجم واستعدت خفتي ونشاطي اليومي. الأجهزة والبيئة هنا تجبرك على النجاح.",
+        quoteEn:
+          "Lost over 20 kg and restored my daily stamina. The facility standard keeps you accountable.",
+        durationAr: "24 أسبوعاً",
+        durationEn: "24 Weeks",
+        weightChangeAr: "-22 كجم",
+        weightChangeEn: "-22 kg",
+        bodyFatChangeAr: "-15%",
+        bodyFatChangeEn: "-15%",
+        beforeImg: "/images/before-men.jpg",
+        afterImg: "/images/after-men.jpg",
+      },
+      {
+        id: 2,
         nameAr: "سارة القحطاني",
         nameEn: "Sara Al-Qahtani",
         trainerAr: "كوتش نورة",
@@ -511,7 +620,7 @@ export const clubData = {
         afterImg: "/images/after-women-1.jpg",
       },
       {
-        id: 2,
+        id: 3,
         nameAr: "خالد المنصور",
         nameEn: "Khalid Al-Mansoor",
         trainerAr: "كوتش ماركوس",
@@ -530,27 +639,6 @@ export const clubData = {
         bodyFatChangeEn: "-11%",
         beforeImg: "/images/before-1.jpg",
         afterImg: "/images/after-1.jpg",
-      },
-      {
-        id: 3,
-        nameAr: "طارق الشمري",
-        nameEn: "Tariq Al-Shammari",
-        trainerAr: "كوتش خالد",
-        trainerEn: "Coach Khalid",
-        goalAr: "خسارة وزن كبرى واستعادة الصحة العامة",
-        goalEn: "Major Weight Loss & Metabolic Reset",
-        quoteAr:
-          "خسرت أكثر من 20 كجم واستعدت خفتي ونشاطي اليومي. الأجهزة والبيئة هنا تجبرك على النجاح.",
-        quoteEn:
-          "Lost over 20 kg and restored my daily stamina. The facility standard keeps you accountable.",
-        durationAr: "24 أسبوعاً",
-        durationEn: "24 Weeks",
-        weightChangeAr: "-22 كجم",
-        weightChangeEn: "-22 kg",
-        bodyFatChangeAr: "-15%",
-        bodyFatChangeEn: "-15%",
-        beforeImg: "/images/before-men.jpg",
-        afterImg: "/images/after-men.jpg",
       },
     ],
   },
@@ -1037,14 +1125,14 @@ export const clubData = {
     ],
   },
   calculator: {
-    badgeAr: "حاسبة اللياقة الذكية",
-    badgeEn: "Smart Fitness Calculator",
-    titleAr: "احسب احتياجك اليومي من السعرات وخطة هدفك",
-    titleEn: "Calculate Daily Calorie Needs & Target Plan",
+    badgeAr: "محاكي التحول البدني الذكي",
+    badgeEn: "Smart Transformation Simulator",
+    titleAr: "محاكاة نتائج التحول البدني لخطة 8 أسابيع",
+    titleEn: "8-Week Body Transformation & Calorie Blueprint",
     subtitleAr:
-      "أداة دقيقة تعتمد على معادلة ميفلين سانت جور لتقدير حرق الدهون أو بناء العضلات",
+      "تقدير علمي يعتمد على معادلة ميفلين سانت جور مع احتساب تأثير الحصة التدريبية المختارة ومستوى الالتزام الغذائي",
     subtitleEn:
-      "Accurate estimation using the Mifflin-St Jeor formula for fat loss or lean muscle gain.",
+      "Scientific estimation based on the Mifflin-St Jeor formula, factoring in your selected training class and nutritional commitment.",
     genderLabelAr: "الجنس",
     genderLabelEn: "Gender",
     maleAr: "ذكر",
@@ -1063,7 +1151,7 @@ export const clubData = {
       {
         value: "1.2",
         labelAr: "خامل (قليل الحركة أو عمل مكتبي)",
-        labelEn: "Sedentary (Little or no exercise)",
+        labelEn: "Sedentary (Office work, little exercise)",
       },
       {
         value: "1.375",
@@ -1086,31 +1174,138 @@ export const clubData = {
     goals: [
       {
         id: "cut",
-        labelAr: "خسارة دهون وتنشيف (-500 سعرة)",
-        labelEn: "Fat Loss & Cut (-500 kcal)",
+        labelAr: "خسارة دهون وتنشيف (عجز سعرات مدروس)",
+        labelEn: "Fat Loss & Cut (Targeted Deficit)",
       },
       {
         id: "maintain",
-        labelAr: "المحافظة على الوزن الحالي",
-        labelEn: "Weight Maintenance",
+        labelAr: "المحافظة على الوزن وتحسين اللياقة",
+        labelEn: "Weight Maintenance & Conditioning",
       },
       {
         id: "bulk",
-        labelAr: "زيادة كتلة عضلية وبناء (+400 سعرة)",
-        labelEn: "Lean Muscle Bulk (+400 kcal)",
+        labelAr: "زيادة كتلة عضلية وبناء (فائض سعرات مُحكم)",
+        labelEn: "Lean Muscle Bulk (Controlled Surplus)",
       },
     ],
-    calculateBtnAr: "احسب خطتي الآن",
-    calculateBtnEn: "Calculate My Blueprint",
-    resultsBadgeAr: "النتيجة التقديرية الموصى بها",
-    resultsBadgeEn: "Your Customized Estimate",
+
+    // انتخاب کلاس باشگاه و تأثیر فیزیولوژیک
+    classLabelAr: "الحصة التدريبية بالنادي",
+    classLabelEn: "Selected Gym Class",
+    classSubtextAr: "تأثير مباشر على البناء العضلي ومعدل الحرق",
+    classSubtextEn: "Direct impact on muscle hypertrophy & metabolic burn",
+    defaultClassOptionAr: "حصص اللياقة العامة",
+    defaultClassOptionEn: "General Fitness Classes",
+
+    // گزینه‌های تعهد به رژیم غذایی
+    dietLabelAr: "الخطة والنظام الغذائي",
+    dietLabelEn: "Nutrition & Diet Plan",
+
+    dietOptions: [
+      {
+        id: "pro",
+        labelAr: "نظام غذائي بإشراف المدرب + مكملات (أعلى فاعلية)",
+        labelEn: "Coach Diet + Supplements (Maximum Output)",
+      },
+      {
+        id: "standard",
+        labelAr: "نظام غذائي منزلي منضبط (تقدم متوازن)",
+        labelEn: "Controlled Home Diet (Balanced Progress)",
+      },
+      {
+        id: "none",
+        labelAr: "بدون نظام محدد / وجبات عادية (نتائج محدودة)",
+        labelEn: "No Strict Diet / Casual (Minimal Progress)",
+      },
+    ],
+
+    calculateBtnAr: "محاكاة خارطة التحول وحساب المؤشرات",
+    calculateBtnEn: "Simulate Transformation Roadmap & Metrics",
+    resultsBadgeAr: "النتائج الفسيولوجية التقديرية بنهاية 8 أسابيع",
+    resultsBadgeEn: "Projected 8-Week Physiological Outcomes",
+    projectedWeightLabelAr: "وزنك التقديري الجديد بنهاية الأسبوع الثامن",
+    projectedWeightLabelEn: "Projected New Weight by Week 8",
+    weightUnitAr: "كجم",
+    weightUnitEn: "kg",
+    weightChangeRangeTextAr: "تغير تقديري بين {min} إلى {max} كجم",
+    weightChangeRangeTextEn: "Projected shift between {min} to {max} kg",
+
+    // نقشه راه ۴ فازه تحول (Roadmap)
+    roadmapTitleAr: "خارطة طريق التحول التدريجي (Milestone Roadmap)",
+    roadmapTitleEn: "Step-by-Step Transformation Roadmap",
+    milestonePhasePrefixAr: "الأسبوع {week} من 8",
+    milestonePhasePrefixEn: "Week {week} of 8",
+    milestones: {
+      week2: {
+        titleAr: "الأسبوع 2: مرحلة التكيف العضلي",
+        titleEn: "Week 2: Muscular Adaptation",
+        bulkNoteAr: "زيادة الشهية، تعزيز تدفق الجليكوجين وارتفاع طاقة الجسم",
+        bulkNoteEn:
+          "Increased appetite, glycogen uptake & elevated workout energy",
+        cutNoteAr: "طرد احتباس السوائل الزائدة والشعور بخفة بدنية واضحة",
+        cutNoteEn:
+          "Shedding excess water retention & noticeable body lightness",
+      },
+      week4: {
+        titleAr: "الأسبوع 4: مرحلة التثبيت الأيضي",
+        titleEn: "Week 4: Metabolic Stabilization",
+        bulkNoteAr:
+          "ارتفاع ملحوظ في أوزان التمارين وبدء امتلاء الألياف العضلية",
+        bulkNoteEn: "Notable strength gains & initial muscle fiber fullness",
+        cutNoteAr: "انخفاض مقاسات محيط الخصر وتحسن كبير في كفاءة التنفس",
+        cutNoteEn: "Visible waistline reduction & enhanced aerobic endurance",
+      },
+      week6: {
+        titleAr: "الأسبوع 6: مرحلة بروز المعالم البدنية",
+        titleEn: "Week 6: Aesthetic Definition",
+        bulkNoteAr: "بروز تقسيم عضلات الأكتاف والذراعين مع زيادة كثافة العضل",
+        bulkNoteEn: "Defined shoulder & arm lines with denser muscle mass",
+        cutNoteAr: "ظهور خطوط عضلات البطن وتحسن ملحوظ في نقاء ومرونة الجلد",
+        cutNoteEn: "Abdominal definition emerges with firmer skin quality",
+      },
+      week8: {
+        titleAr: "الأسبوع 8: ذروة التحول وتثبيت النتائج",
+        titleEn: "Week 8: Peak Transformation",
+        bulkNoteAr:
+          "تثبيت الكتلة العضلية المكتسبة وزيادة دائمية في القوة البدنية",
+        bulkNoteEn:
+          "Stabilizing newly gained muscle mass with lasting peak strength",
+        cutNoteAr: "الوصول لأفضل نسبة دهون مع أقصى وضوح وتقسيم عضلي",
+        cutNoteEn:
+          "Achieving target body fat percentage with peak muscle definition",
+      },
+    },
+
+    // کارت‌های متریک
+    bmiLabelAr: "مؤشر كتلة الجسم الحالي (BMI)",
+    bmiLabelEn: "Current BMI Index",
+    targetBmiLabelAr: "BMI المستهدف بالأسبوع 8",
+    targetBmiLabelEn: "Target BMI by Week 8",
     caloriesLabelAr: "السعرات اليومية المستهدفة",
     caloriesLabelEn: "Target Daily Calories",
-    bmiLabelAr: "مؤشر كتلة الجسم (BMI)",
-    bmiLabelEn: "Body Mass Index (BMI)",
-    proteinLabelAr: "البروتين اليومي المقترح",
+    tdeeLabelAr: "إجمالي الأيض اليومي (TDEE)",
+    tdeeLabelEn: "Total Daily Expenditure (TDEE)",
+    proteinLabelAr: "البروتين اليومي الموصى به",
     proteinLabelEn: "Suggested Daily Protein",
-    sendWhatsappBtnAr: "إرسال تقريري للمدرب للمتابعة عبر واتساب",
-    sendWhatsappBtnEn: "Send My Report to Coach via WhatsApp",
+    dailyUnitAr: "سعرة / يوم",
+    dailyUnitEn: "kcal / day",
+    proteinUnitAr: "جرام / يوم",
+    proteinUnitEn: "g / day",
+
+    // برچسب‌های تفکیک نوع تمرین
+    strengthTagAr: "تركيز فائق على التضخيم العضلي وزيادة القوة (Hypertrophy)",
+    strengthTagEn: "High-focus on hypertrophy & mechanical tension",
+    cardioTagAr: "تركيز عالي على حرق الدهون ورفع اللياقة اللاهوائية (HIIT)",
+    cardioTagEn: "Maximum metabolic conditioning & peak calorie burn",
+    mobilityTagAr: "تركيز على تقوية عضلات الجذع، المرونة وتعديل القوام",
+    mobilityTagEn: "Core stabilization, posture alignment & flexibility",
+    generalTagAr: "تمارين شاملة لرفع اللياقة البدنية والتحمل",
+    generalTagEn: "General physical conditioning & functional fitness",
+
+    // اکشن‌ها
+    bookClassBtnTextAr: "حجز مقعد في حصة {title}",
+    bookClassBtnTextEn: "Book Seat in {title}",
+    sendWhatsappBtnAr: "إرسال تقرير التحول للمدرب عبر واتساب",
+    sendWhatsappBtnEn: "Send Transformation Report to Coach via WhatsApp",
   },
 };

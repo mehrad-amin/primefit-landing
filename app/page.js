@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { clubData } from "../src/config/clubData.js";
 
-import Facilities from "@/src/components/Facilities.jsx";
+import Facilities from "@/src/components/ClubTour.jsx";
 import TransformationsSlider from "@/src/components/TransformationsSlider.jsx";
 import Faq from "@/src/components/Faq.jsx";
 import Trainers from "@/src/components/Trainers.jsx";
@@ -17,6 +17,7 @@ import Header from "@/src/components/Header.jsx";
 import Hero from "@/src/components/Hero.jsx";
 import Pricing from "@/src/components/Pricing.jsx";
 import StickyBookingBar from "@/src/components/StickyBookingBar.jsx";
+import ClubTour from "@/src/components/ClubTour.jsx";
 
 export default function HomePage() {
   const [lang, setLang] = useState("ar");
@@ -132,7 +133,8 @@ export default function HomePage() {
         onCurrencyChange={setCurrency}
       />
       <Hero lang={lang} />
-      <Facilities lang={lang} />
+
+      <ClubTour lang={lang} />
       <Recovery lang={lang} />
       <TransformationsSlider lang={lang} />
       <FitnessCalculator lang={lang} />

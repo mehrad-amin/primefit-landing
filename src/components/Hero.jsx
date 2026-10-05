@@ -1,82 +1,90 @@
+"use client";
+
 import { clubData } from "../config/clubData.js";
-import {
-  ArrowLeft,
-  ArrowRight,
-  MessageCircle,
-  ShieldCheck,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight, ShieldCheck } from "lucide-react";
+import Image from "next/image";
 
 export default function Hero({ lang = "ar" }) {
   const isAr = lang === "ar";
-  const { hero } = clubData.brand;
+  const { hero } = clubData.brand || {};
 
+  // ایجاد لینک واتساپ با پیام پیش‌فرض متناسب با زبان فعال
   const defaultWaMsg = isAr
-    ? clubData.brand.defaultWaMessageAr
-    : clubData.brand.defaultWaMessageEn;
+    ? clubData.brand?.defaultWaMessageAr
+    : clubData.brand?.defaultWaMessageEn;
 
-  const waUrl = `https://wa.me/${clubData.brand.whatsappNumber}?text=${encodeURIComponent(defaultWaMsg)}`;
+  const waUrl = `https://wa.me/${clubData.brand?.whatsappNumber || "966500000000"}?text=${encodeURIComponent(
+    defaultWaMsg || "",
+  )}`;
 
   return (
-    <section className="relative min-h-[92vh] lg:min-h-screen flex items-center justify-center pt-28 pb-16 overflow-hidden bg-dark-950">
-      {/* پس‌زمینه سینمایی ویدیویی با اورلی دارک */}
-      {/* پس‌زمینه بهینه‌شده برای وضوح بالا در موبایل */}
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        {/* ۱. نسخه موبایل */}
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          poster="/hero-poster-mobile.png"
-          className="md:hidden absolute inset-0 w-full h-full object-cover object-center opacity-85 contrast-105"
-        >
-          <source src="/hero-video-2.mp4" type="video/mp4" />
-        </video>
+    <section
+      dir={isAr ? "rtl" : "ltr"}
+      className="relative min-h-[92vh] lg:min-h-screen flex items-center justify-center pt-28 pb-16 overflow-hidden bg-dark-950"
+    >
+      {/* هاله نور طلایی پس‌‌زمینه */}
+      <div className="absolute top-1/4 start-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[650px] bg-gold-500/10 rounded-full blur-[120px] pointer-events-none" />
 
-        {/* ۲. نسخه دسکتاپ */}
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          poster="/poster.png"
-          className="hidden md:block absolute inset-0 w-full h-full object-cover object-center opacity-65"
-        >
-          <source src="/hero-video.mp4" type="video/mp4" />
-        </video>
+      {/* تصاویر بهینه‌شده پس‌زمینه مخصوص موبایل و دسکتاپ */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
+        {/* ۱. تصویر مخصوص موبایل (زیر 768px) */}
+        <div className="relative w-full h-full block md:hidden">
+          <Image
+            src="/images/hero-mobile.webp"
+            alt={isAr ? clubData.brand?.nameAr : clubData.brand?.name}
+            fill
+            priority
+            quality={80}
+            sizes="100vw"
+            className="object-cover object-center opacity-70 brightness-95 contrast-105"
+          />
+        </div>
 
-        {/* لایه گرادیان بسیار سبک (بدون تیرگی در مرکز صفحه) */}
-        <div className="absolute inset-0 bg-gradient-to-b from-dark-950/50 via-transparent to-dark-950" />
+        {/* ۲. تصویر مخصوص تبلت و دسکتاپ (از 768px به بالا) */}
+        <div className="relative w-full h-full hidden md:block">
+          <Image
+            src="/images/hero-bg.webp"
+            alt={isAr ? clubData.brand?.nameAr : clubData.brand?.name}
+            fill
+            priority
+            quality={85}
+            sizes="100vw"
+            className="object-cover object-center opacity-70 brightness-95 contrast-105"
+          />
+        </div>
+
+        {/* لایه‌های گرادیان عمودی برای برجسته‌سازی متن‌ها و کارت‌ها */}
+        <div className="absolute inset-0 bg-gradient-to-b from-dark-950/85 via-dark-950/35 to-dark-950" />
       </div>
 
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        {/* برچسب اعتبار */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-dark-850/90 border border-gold-500/30 text-gold-400 text-xs sm:text-sm font-semibold mb-6 shadow-lg shadow-gold-500/5 backdrop-blur-md">
+        {/* ۱. برچسب اعتبار (Badge) */}
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-dark-850/80 border border-gold-500/30 text-gold-400 text-xs sm:text-sm font-semibold mb-6 shadow-lg shadow-gold-500/5 backdrop-blur-md transition-transform duration-300 hover:scale-105">
           <ShieldCheck className="w-4 h-4 text-gold-500 shrink-0" />
-          <span>{isAr ? hero.badgeAr : hero.badgeEn}</span>
+          <span>{isAr ? hero?.badgeAr : hero?.badgeEn}</span>
         </div>
 
-        {/* تیتر اصلی دو زبانه */}
+        {/* ۲. تیتر اصلی دوزبانه */}
         <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white leading-tight tracking-tight max-w-4xl mx-auto">
-          {isAr ? hero.titlePart1Ar : hero.titlePart1En}{" "}
+          {isAr ? hero?.titlePart1Ar : hero?.titlePart1En}{" "}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold-400 via-gold-500 to-amber-200">
-            {isAr ? clubData.brand.nameAr : clubData.brand.name}
+            {isAr ? clubData.brand?.nameAr : clubData.brand?.name}
           </span>
         </h1>
 
-        {/* زیرتیتر توضیحی */}
+        {/* ۳. زیرتیتر توضیحی */}
         <p className="mt-6 text-base sm:text-lg lg:text-xl text-neutral-300 max-w-2xl mx-auto leading-relaxed">
-          {isAr ? hero.descAr : hero.descEn}
+          {isAr ? hero?.descAr : hero?.descEn}
         </p>
 
-        {/* دکمه‌های دوتایی CTA با عرض و ارتفاع هم‌اندازه */}
+        {/* ۴. دکمه‌های دوتایی CTA */}
         <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl mx-auto w-full items-stretch">
-          {/* دکمه ۱: دریافت تصريح روز رایگان */}
+          {/* دکمه ۱: رزرو / فرم لید */}
           <a
             href="#lead-capture"
             className="w-full flex items-center justify-center gap-2 px-5 py-4 rounded-xl text-sm md:text-base font-bold text-dark-950 bg-gradient-to-r from-gold-400 to-gold-500 hover:from-gold-300 hover:to-gold-400 shadow-xl shadow-gold-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-center whitespace-nowrap"
           >
-            <span>{isAr ? hero.ctaPrimaryAr : hero.ctaPrimaryEn}</span>
+            <span>{isAr ? hero?.ctaPrimaryAr : hero?.ctaPrimaryEn}</span>
             {isAr ? (
               <ArrowLeft className="w-5 h-5 shrink-0" />
             ) : (
@@ -89,9 +97,9 @@ export default function Hero({ lang = "ar" }) {
             href={waUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full sm:w-auto flex items-center justify-center gap-3 px-6 py-4 rounded-xl text-sm md:text-base font-bold text-white bg-dark-850/90 border border-neutral-700 hover:border-[#25D366]/60 hover:bg-dark-800 hover:text-emerald-400 shadow-lg shadow-black/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-center whitespace-nowrap group"
+            className="w-full sm:w-auto flex items-center justify-center gap-3 px-6 py-4 rounded-xl text-sm md:text-base font-bold text-white bg-dark-850/80 border border-neutral-700 hover:border-[#25D366]/60 hover:bg-dark-800 hover:text-emerald-400 shadow-lg shadow-black/40 hover:scale-[1.02] active:scale-[0.98] backdrop-blur-md transition-all duration-200 text-center whitespace-nowrap group"
           >
-            {/* لوگوی رسمی دو لایه WhatsApp */}
+            {/* لوگوی رسمی واتساپ */}
             <svg
               className="w-6 h-6 shrink-0 group-hover:scale-110 transition-transform duration-200 drop-shadow-[0_2px_8px_rgba(37,211,102,0.3)]"
               viewBox="0 0 48 48"
@@ -99,10 +107,7 @@ export default function Hero({ lang = "ar" }) {
               xmlns="http://www.w3.org/2000/svg"
               aria-hidden="true"
             >
-              {/* دایره سبز رسمی برند */}
               <circle cx="24" cy="24" r="24" fill="#25D366" />
-
-              {/* بالون گفتگو و گوشی سفید رسمی */}
               <path
                 fillRule="evenodd"
                 clipRule="evenodd"
@@ -110,18 +115,24 @@ export default function Hero({ lang = "ar" }) {
                 fill="#FFFFFF"
               />
             </svg>
-            <span>{isAr ? hero.ctaSecondaryAr : hero.ctaSecondaryEn}</span>
+            <span>{isAr ? hero?.ctaSecondaryAr : hero?.ctaSecondaryEn}</span>
           </a>
         </div>
 
-        {/* آمار سریع زیر دکمه‌ها */}
-        <div className="mt-12 pt-8 border-t border-neutral-800/80 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-          {clubData.stats.map((stat, idx) => (
-            <div key={idx} className="flex flex-col items-center">
-              <span className="text-xl sm:text-2xl font-black text-white font-english">
+        {/* ۵. آمار سریع با طراحی گلس‌مورفیسم شفاف و مدرن */}
+        <div className="mt-14 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto">
+          {clubData.stats?.map((stat, idx) => (
+            <div
+              key={idx}
+              className="relative group p-4 sm:p-5 rounded-2xl bg-neutral-900/40 backdrop-blur-xl border border-white/10 hover:border-gold-500/40 shadow-lg shadow-black/30 hover:shadow-gold-500/10 transition-all duration-300 flex flex-col items-center justify-center text-center overflow-hidden hover:-translate-y-1"
+            >
+              {/* بازتاب نور داخلی گلس */}
+              <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-transparent pointer-events-none rounded-2xl" />
+
+              <span className="text-2xl sm:text-3xl font-black text-white font-mono tracking-tight group-hover:text-gold-400 transition-colors">
                 {stat.value}
               </span>
-              <span className="text-xs text-neutral-400 mt-0.5">
+              <span className="text-xs text-neutral-300 font-medium mt-1">
                 {isAr ? stat.labelAr : stat.labelEn}
               </span>
             </div>
