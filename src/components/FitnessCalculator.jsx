@@ -476,7 +476,7 @@ Please confirm my in-person assessment and membership setup.`;
                   {isAr ? calcData.ageLabelAr : calcData.ageLabelEn}
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   min="14"
                   max="85"
                   value={age}
@@ -490,7 +490,7 @@ Please confirm my in-person assessment and membership setup.`;
                   {isAr ? calcData.heightLabelAr : calcData.heightLabelEn}
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   min="120"
                   max="230"
                   value={height}
@@ -504,7 +504,7 @@ Please confirm my in-person assessment and membership setup.`;
                   {isAr ? calcData.weightLabelAr : calcData.weightLabelEn}
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   min="35"
                   max="220"
                   value={weight}
